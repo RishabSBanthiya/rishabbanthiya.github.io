@@ -72,14 +72,31 @@
       background-color: #0056b3;
       border-color: #0056b3;
     }
+    .circular-picture {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
+
+.profile-picture {
+  width: 100x;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 5px solid #777; /* Add a border if you want */
+}
+
   </style>
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+  
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container">
       <a class="navbar-brand" href="#">rishab-banthiya</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
         aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -101,6 +118,10 @@
       </div>
     </div>
   </nav>
+
+  <div class="circular-picture">
+    <img src="html-tag-icon.png" alt="Profile Picture" class="profile-picture">
+  </div>
 
   <!-- Main content section -->
   <div class="container mt-5 text-center">
@@ -137,6 +158,15 @@
         aboutMeCollapse.classList.add("show");
       }
     });
+
+        // JavaScript to close the navbar when a link is clicked
+        var navLinks = document.querySelectorAll(".nav-link");
+    navLinks.forEach(function(link) {
+      link.addEventListener("click", function() {
+        document.querySelector(".navbar-collapse").classList.remove("show");
+      });
+    });
+
   </script>
 </body>
 </html>
