@@ -1,0 +1,17 @@
+/* App-specific styles */
+.App {
+  min-height: 100vh;
+}
+
+.larger-first-line {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.left-align {
+  text-align: left;
+}
+
+.larger-header {
+  font-size: 1.1rem;
+}
