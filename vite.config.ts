@@ -7,6 +7,8 @@ export default defineConfig({
   base: '/rishabbanthiya.github.io/',
   build: {
     outDir: 'dist',
-    assetsDir: 'assets'
+    assetsDir: 'assets',
+    sourcemap: false,
+    minify: 'terser'
   }
 })

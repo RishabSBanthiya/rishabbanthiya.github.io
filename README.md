@@ -69,13 +69,30 @@ src/
 
 ## 🚀 Deployment
 
-This project is configured for GitHub Pages deployment. The build output in the `dist` folder can be deployed to any static hosting service.
+This project is configured for GitHub Pages deployment with automatic CI/CD.
 
-### GitHub Pages
+### Automatic Deployment (Recommended)
 
-1. Build the project: `npm run build`
-2. Push the `dist` folder contents to the `gh-pages` branch
-3. Configure GitHub Pages to serve from the `gh-pages` branch
+1. **Enable GitHub Pages**: Go to your repository Settings → Pages → Source: "GitHub Actions"
+2. **Push to main branch**: The site will automatically build and deploy
+3. **Access your site**: https://rishabbanthiya.github.io/rishabbanthiya.github.io/
+
+### Manual Deployment
+
+If you prefer manual deployment:
+
+1. **Install Node.js** (if not already installed)
+2. **Install dependencies**: `npm install`
+3. **Build the project**: `npm run build`
+4. **Deploy**: Run `./deploy.sh` or manually copy `dist/*` contents to repository root
+5. **Commit and push**: `git add . && git commit -m "Deploy" && git push`
+
+### GitHub Actions Workflow
+
+The project includes a `.github/workflows/deploy.yml` file that automatically:
+- Builds the TypeScript project
+- Deploys to GitHub Pages
+- Runs on every push to main branch
 
 ## 📝 About
 
