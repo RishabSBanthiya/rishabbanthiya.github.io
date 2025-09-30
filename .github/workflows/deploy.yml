@@ -1,23 +1,20 @@
-name: Deploy to GitHub Pages
+name: Build and Deploy
 
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
         
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
@@ -29,11 +26,20 @@ jobs:
       - name: Build
         run: npm run build
         
-      - name: Deploy to GitHub Pages
+      - name: Deploy
         run: |
+          # Copy built files to root
           cp -r dist/* .
+          
+          # Configure git
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          
+          # Add all files
           git add .
-          git commit -m "Deploy to GitHub Pages" || exit 0
-          git push
+          
+          # Commit changes
+          git commit -m "Deploy: $(date)" || exit 0
+          
+          # Push changes
+          git push origin main
