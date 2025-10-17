@@ -74,7 +74,7 @@ const DinoGame: React.FC<DinoGameProps> = ({ onClose }) => {
 
     // Spawn obstacles
     const spawnObstacle = () => {
-      const type = Math.random() > 0.7 ? 'bird' : 'cactus'
+      const type: 'cactus' | 'bird' = Math.random() > 0.7 ? 'bird' : 'cactus'
       const obstacle = {
         x: state.canvas.width,
         width: type === 'bird' ? 40 : 20,
