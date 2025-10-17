@@ -315,7 +315,6 @@ const Terminal: React.FC = () => {
   const [currentDirectory, setCurrentDirectory] = useState('~')
   const [suggestion, setSuggestion] = useState('')
   const [historyPreview, setHistoryPreview] = useState('')
-  const [debugInfo, setDebugInfo] = useState<string[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
   const terminalRef = useRef<HTMLDivElement>(null)
   const headerRef = useRef<HTMLDivElement>(null)
@@ -628,8 +627,6 @@ const Terminal: React.FC = () => {
 
   // Handle Tab key for autocomplete and arrow keys for history
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Debug ALL key presses
-    setDebugInfo(prev => [...prev.slice(-4), `🔑 Key pressed: "${e.key}" | code: "${e.code}"`])
     
     if (e.key === 'Tab') {
       e.preventDefault()
@@ -653,12 +650,7 @@ const Terminal: React.FC = () => {
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       
-      // Add debug info
-      const debugMsg = `↑ Pressed | History: [${commandHistory.join(', ')}] | Current Index: ${historyIndex}`
-      setDebugInfo(prev => [...prev.slice(-4), debugMsg])
-      
       if (commandHistory.length === 0) {
-        setDebugInfo(prev => [...prev, '⚠️ No history yet'])
         return
       }
       
@@ -671,15 +663,10 @@ const Terminal: React.FC = () => {
       setHistoryPreview(commandHistory[newIndex])
       setSuggestion('')
       
-      setDebugInfo(prev => [...prev, `✓ Set preview to: "${commandHistory[newIndex]}" (index ${newIndex})`])
     } else if (e.key === 'ArrowDown') {
       e.preventDefault()
       
-      const debugMsg = `↓ Pressed | History: [${commandHistory.join(', ')}] | Current Index: ${historyIndex}`
-      setDebugInfo(prev => [...prev.slice(-4), debugMsg])
-      
       if (historyIndex === -1) {
-        setDebugInfo(prev => [...prev, '⚠️ Already at newest'])
         return
       }
       
@@ -689,11 +676,9 @@ const Terminal: React.FC = () => {
       if (newIndex >= commandHistory.length) {
         setHistoryIndex(-1)
         setHistoryPreview('')
-        setDebugInfo(prev => [...prev, '✓ Cleared preview (at end)'])
       } else {
         setHistoryIndex(newIndex)
         setHistoryPreview(commandHistory[newIndex])
-        setDebugInfo(prev => [...prev, `✓ Set preview to: "${commandHistory[newIndex]}" (index ${newIndex})`])
       }
       setSuggestion('')
     }
@@ -945,7 +930,7 @@ Feel free to reach out for:
     // Global arrow key listener for debugging
     const globalKeyHandler = (e: KeyboardEvent) => {
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-        setDebugInfo(prev => [...prev.slice(-4), `🌍 Global key detected: ${e.key} (target: ${(e.target as HTMLElement)?.tagName})`])
+        // setDebugInfo(prev => [...prev.slice(-4), `🌍 Global key detected: ${e.key} (target: ${(e.target as HTMLElement)?.tagName})`])
       }
     }
     
@@ -1008,7 +993,6 @@ Feel free to reach out for:
     // Add to command history and reset history index
     setCommandHistory(prev => {
       const newHistory = [...prev, trimmedCommand]
-      setDebugInfo(d => [...d.slice(-4), `✅ Added "${trimmedCommand}" to history. Total: ${newHistory.length}`])
       return newHistory
     })
     setHistoryIndex(-1)
@@ -1166,29 +1150,6 @@ Feel free to reach out for:
               {item.output}
             </div>
           ))}
-          {debugInfo.length > 0 && (
-            <div style={{ 
-              background: '#2a1f17', 
-              padding: '10px', 
-              marginBottom: '10px', 
-              border: '1px solid #8b6f47',
-              borderRadius: '4px',
-              fontFamily: 'monospace',
-              fontSize: '0.85rem'
-            }}>
-              <div style={{ color: '#8b6f47', fontWeight: 'bold', marginBottom: '5px' }}>
-                🔍 DEBUG INFO:
-              </div>
-              {debugInfo.map((info, idx) => (
-                <div key={idx} style={{ color: '#d4a574', marginBottom: '2px' }}>
-                  {info}
-                </div>
-              ))}
-              <div style={{ marginTop: '8px', color: '#8b6f47', fontSize: '0.8rem' }}>
-                historyPreview: "{historyPreview}" | currentCommand: "{currentCommand}"
-              </div>
-            </div>
-          )}
           <form onSubmit={handleSubmit} className="terminal-input-form">
             <div className="terminal-input-line">
               <label htmlFor="terminal-input" className="terminal-prompt">
