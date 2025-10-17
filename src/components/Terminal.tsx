@@ -955,7 +955,7 @@ Feel free to reach out for:
     }
 
     // Add to command history and reset history index
-    setCommandHistory([...commandHistory, trimmedCommand])
+    setCommandHistory(prev => [...prev, trimmedCommand])
     setHistoryIndex(-1)
 
     if (trimmedCommand.toLowerCase() === 'clear') {
