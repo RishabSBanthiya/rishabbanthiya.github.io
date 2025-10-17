@@ -311,6 +311,7 @@ const Terminal: React.FC = () => {
   const [dragOffset, setDragOffset] = useState<Position>({ x: 0, y: 0 })
   const [activeGame, setActiveGame] = useState<'pong' | 'dino' | null>(null)
   const [commandHistory, setCommandHistory] = useState<string[]>([])
+  const [historyIndex, setHistoryIndex] = useState<number>(-1)
   const [currentDirectory, setCurrentDirectory] = useState('~')
   const [suggestion, setSuggestion] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -609,11 +610,12 @@ const Terminal: React.FC = () => {
   // Handle input change with autocomplete
   const handleInputChange = (value: string) => {
     setCurrentCommand(value)
+    setHistoryIndex(-1) // Reset history navigation when typing
     const autocompletion = getAutocomplete(value)
     setSuggestion(autocompletion)
   }
 
-  // Handle Tab key for autocomplete
+  // Handle Tab key for autocomplete and arrow keys for history
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Tab') {
       e.preventDefault()
@@ -621,6 +623,31 @@ const Terminal: React.FC = () => {
         setCurrentCommand(suggestion)
         setSuggestion('')
       }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      if (commandHistory.length === 0) return
+      
+      const newIndex = historyIndex === -1 
+        ? commandHistory.length - 1 
+        : Math.max(0, historyIndex - 1)
+      
+      setHistoryIndex(newIndex)
+      setCurrentCommand(commandHistory[newIndex])
+      setSuggestion('')
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      if (historyIndex === -1) return
+      
+      const newIndex = historyIndex + 1
+      
+      if (newIndex >= commandHistory.length) {
+        setHistoryIndex(-1)
+        setCurrentCommand('')
+      } else {
+        setHistoryIndex(newIndex)
+        setCurrentCommand(commandHistory[newIndex])
+      }
+      setSuggestion('')
     }
   }
 
@@ -920,8 +947,9 @@ Feel free to reach out for:
       return
     }
 
-    // Add to command history
+    // Add to command history and reset history index
     setCommandHistory([...commandHistory, trimmedCommand])
+    setHistoryIndex(-1)
 
     if (trimmedCommand.toLowerCase() === 'clear') {
       setHistory([])
