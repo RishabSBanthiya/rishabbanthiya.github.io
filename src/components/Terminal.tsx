@@ -12,6 +12,78 @@ interface Position {
   y: number
 }
 
+// Weather Display Component
+const WeatherDisplay: React.FC = () => {
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [weatherData, setWeatherData] = useState<string>('')
+
+  useEffect(() => {
+    // Create an AbortController for timeout
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
+    fetch('https://wttr.in/?format=j1', {
+      signal: controller.signal,
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+      .then(res => {
+        clearTimeout(timeoutId)
+        if (res.status === 200) {
+          return res.json()
+        } else {
+          throw new Error('Non-200 response')
+        }
+      })
+      .then(data => {
+        const current = data.current_condition[0]
+        const location = data.nearest_area[0]
+        const weatherText = `Weather for ${location.areaName[0].value}, ${location.region[0].value}
+========================
+Condition: ${current.weatherDesc[0].value}
+Temperature: ${current.temp_F}°F (${current.temp_C}°C)
+Feels like: ${current.FeelsLikeF}°F
+Humidity: ${current.humidity}%
+Wind: ${current.windspeedMiles} mph ${current.winddir16Point}
+Visibility: ${current.visibility} mi
+
+Data from wttr.in ☕`
+        setWeatherData(weatherText)
+        setLoading(false)
+      })
+      .catch(() => {
+        clearTimeout(timeoutId)
+        setLoading(false)
+        setError(true)
+      })
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="command-output">
+        <p className="output-line">⏳ Fetching weather data from wttr.in...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="command-output">
+        <p className="output-line error">❌ The meteorologist is on leave</p>
+        <p className="output-line">Unable to fetch weather data at this time.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="command-output">
+      <pre>{weatherData}</pre>
+    </div>
+  )
+}
+
 const Terminal: React.FC = () => {
   const [history, setHistory] = useState<CommandHistory[]>([])
   const [currentCommand, setCurrentCommand] = useState('')
@@ -19,6 +91,9 @@ const Terminal: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false)
   const [dragOffset, setDragOffset] = useState<Position>({ x: 0, y: 0 })
   const [activeGame, setActiveGame] = useState<'pong' | 'dino' | null>(null)
+  const [commandHistory, setCommandHistory] = useState<string[]>([])
+  const [currentDirectory, setCurrentDirectory] = useState('~')
+  const [suggestion, setSuggestion] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const terminalRef = useRef<HTMLDivElement>(null)
   const headerRef = useRef<HTMLDivElement>(null)
@@ -60,6 +135,34 @@ const Terminal: React.FC = () => {
             <div className="command-item">
               <span className="cmd-name">ssh &lt;url&gt;</span>
               <span className="cmd-desc">Open a URL in a new tab</span>
+            </div>
+            <div className="command-item">
+              <span className="cmd-name">neofetch</span>
+              <span className="cmd-desc">Display system information</span>
+            </div>
+            <div className="command-item">
+              <span className="cmd-name">cat &lt;file&gt;</span>
+              <span className="cmd-desc">Read file contents (about.txt, skills.json, etc.)</span>
+            </div>
+            <div className="command-item">
+              <span className="cmd-name">history</span>
+              <span className="cmd-desc">Show command history</span>
+            </div>
+            <div className="command-item">
+              <span className="cmd-name">ping</span>
+              <span className="cmd-desc">Check if I'm available</span>
+            </div>
+            <div className="command-item">
+              <span className="cmd-name">weather</span>
+              <span className="cmd-desc">Get current weather</span>
+            </div>
+            <div className="command-item">
+              <span className="cmd-name">cd &lt;section&gt;</span>
+              <span className="cmd-desc">Navigate to section (about, projects, contact)</span>
+            </div>
+            <div className="command-item">
+              <span className="cmd-name">grep &lt;term&gt;</span>
+              <span className="cmd-desc">Search through content</span>
             </div>
             <div className="command-item">
               <span className="cmd-name">clear</span>
@@ -150,6 +253,353 @@ const Terminal: React.FC = () => {
         <p className="output-line">{currentCommand.substring(5)}</p>
       </div>
     ),
+
+    neofetch: () => (
+      <div className="command-output">
+        <pre className="neofetch-output">{`
+   ___           Rishab Banthiya
+  /   \\          ──────────────────────────
+ | O O |         OS: Full Stack Developer
+  \\___/          Shell: TypeScript + React
+                 Uptime: ${new Date().getFullYear() - 2020}+ years coding
+                 Languages: JavaScript, TypeScript, Python
+                 Frameworks: React, Node.js, Express
+                 Tools: Git, Docker, AWS
+                 Editor: VS Code
+                 Terminal: Zsh
+                 Location: ${currentDirectory}
+                 Status: Open to opportunities
+`}</pre>
+      </div>
+    ),
+
+    ping: () => {
+      return (
+        <div className="command-output">
+          <p className="output-line success">64 bytes from rishab-banthiya.com: icmp_seq=1 ttl=64 time=0.420ms</p>
+          <p className="output-line success">Ping successful! Currently available for opportunities ☕</p>
+        </div>
+      )
+    },
+
+    pwd: () => (
+      <div className="command-output">
+        <p className="output-line">/home/rishab/{currentDirectory}</p>
+      </div>
+    ),
+  }
+
+  // Get all available commands for autocomplete
+  const availableCommands = [
+    ...Object.keys(commands),
+    'play',
+    'ssh',
+    'cat',
+    'history',
+    'weather',
+    'cd',
+    'grep',
+    'neofetch',
+    'ping',
+    'echo',
+  ]
+
+  // Available files for cat command
+  const availableFiles = ['about.txt', 'skills.json', 'contact.txt', 'experience.log']
+
+  // Available directories for cd command
+  const availableDirectories = ['~', 'about', 'projects', 'contact', 'skills', '..']
+
+  // Autocomplete function
+  const getAutocomplete = (input: string): string => {
+    if (!input) return ''
+
+    const parts = input.toLowerCase().split(' ')
+    const baseCommand = parts[0]
+    
+    // Autocomplete command
+    if (parts.length === 1) {
+      const matches = availableCommands.filter(cmd => 
+        cmd.toLowerCase().startsWith(baseCommand)
+      )
+      if (matches.length === 1 && matches[0].toLowerCase() !== baseCommand) {
+        return matches[0]
+      }
+    }
+    
+    // Autocomplete file for cat command
+    if (parts.length === 2 && baseCommand === 'cat') {
+      const partial = parts[1]
+      const matches = availableFiles.filter(file => 
+        file.toLowerCase().startsWith(partial)
+      )
+      if (matches.length === 1 && matches[0].toLowerCase() !== partial) {
+        return `cat ${matches[0]}`
+      }
+    }
+    
+    // Autocomplete directory for cd command
+    if (parts.length === 2 && baseCommand === 'cd') {
+      const partial = parts[1]
+      const matches = availableDirectories.filter(dir => 
+        dir.toLowerCase().startsWith(partial)
+      )
+      if (matches.length === 1 && matches[0].toLowerCase() !== partial) {
+        return `cd ${matches[0]}`
+      }
+    }
+
+    // Autocomplete game for play command
+    if (parts.length === 2 && baseCommand === 'play') {
+      const partial = parts[1]
+      const games = ['pong', 'dino']
+      const matches = games.filter(game => game.startsWith(partial))
+      if (matches.length === 1 && matches[0] !== partial) {
+        return `play ${matches[0]}`
+      }
+    }
+    
+    return ''
+  }
+
+  // Handle input change with autocomplete
+  const handleInputChange = (value: string) => {
+    setCurrentCommand(value)
+    const autocompletion = getAutocomplete(value)
+    setSuggestion(autocompletion)
+  }
+
+  // Handle Tab key for autocomplete
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Tab') {
+      e.preventDefault()
+      if (suggestion) {
+        setCurrentCommand(suggestion)
+        setSuggestion('')
+      }
+    }
+  }
+
+  // Helper function for cat command
+  const handleCatCommand = (filename: string): React.ReactNode => {
+    const files: Record<string, React.ReactNode> = {
+      'about.txt': (
+        <div className="command-output">
+          <pre>{`Name: Rishab Banthiya
+Role: Full Stack Developer
+Location: United States
+Interests: Technology, Innovation, Problem Solving
+
+I'm passionate about building innovative solutions and exploring
+new technologies. I enjoy working on challenging projects that
+make a real impact.
+
+Skills:
+- Frontend: React, TypeScript, JavaScript
+- Backend: Node.js, Express, Python
+- Database: PostgreSQL, MongoDB, Redis
+- Cloud: AWS, Docker, Kubernetes
+- Tools: Git, CI/CD, Agile
+
+Currently open to exciting opportunities!`}</pre>
+        </div>
+      ),
+      'skills.json': (
+        <div className="command-output">
+          <pre>{JSON.stringify({
+            "languages": ["JavaScript", "TypeScript", "Python", "Java"],
+            "frontend": ["React", "Next.js", "HTML/CSS", "Bootstrap"],
+            "backend": ["Node.js", "Express", "Django", "GraphQL"],
+            "databases": ["PostgreSQL", "MongoDB", "Redis", "Supabase"],
+            "tools": ["Git", "Docker", "AWS", "Vercel"],
+            "currently_learning": ["Rust", "Web3", "AI/ML"]
+          }, null, 2)}</pre>
+        </div>
+      ),
+      'contact.txt': (
+        <div className="command-output">
+          <pre>{`Contact Information
+==================
+
+Email: banthiya.rishab1511@gmail.com
+LinkedIn: linkedin.com/in/rishrub
+GitHub: github.com/rishabSBanthiya
+
+Feel free to reach out for:
+- Job opportunities
+- Collaborations
+- Open source projects
+- Tech discussions`}</pre>
+        </div>
+      ),
+      'experience.log': (
+        <div className="command-output">
+          <pre>{`Work Experience
+===============
+
+[2023-Present] Full Stack Developer
+- Building scalable web applications
+- Working with modern tech stack
+- Leading development initiatives
+
+[2022-2023] Software Engineer
+- Developed features for production applications
+- Collaborated with cross-functional teams
+- Implemented CI/CD pipelines
+
+[2020-2022] Student & Learning
+- Computer Science fundamentals
+- Building projects
+- Contributing to open source`}</pre>
+        </div>
+      ),
+    }
+
+    if (!filename) {
+      return (
+        <div className="command-output">
+          <p className="output-line error">Usage: cat &lt;file&gt;</p>
+          <p className="output-line">Available files: about.txt, skills.json, contact.txt, experience.log</p>
+        </div>
+      )
+    }
+
+    if (files[filename]) {
+      return files[filename]
+    }
+
+    return (
+      <div className="command-output">
+        <p className="output-line error">cat: {filename}: No such file or directory</p>
+        <p className="output-line">Available files: about.txt, skills.json, contact.txt, experience.log</p>
+      </div>
+    )
+  }
+
+  // Helper function for weather command
+  const handleWeatherCommand = (): React.ReactNode => {
+    return <WeatherDisplay />
+  }
+
+  // Helper function for cd command
+  const handleCdCommand = (targetDir: string): React.ReactNode => {
+    const validDirs = ['~', 'about', 'projects', 'contact', 'skills', '..']
+    
+    if (targetDir === '..' || targetDir === '~') {
+      setCurrentDirectory('~')
+      return (
+        <div className="command-output">
+          <p className="output-line success">Changed directory to ~</p>
+        </div>
+      )
+    }
+
+    if (validDirs.includes(targetDir)) {
+      setCurrentDirectory(targetDir)
+      return (
+        <div className="command-output">
+          <p className="output-line success">Changed directory to {targetDir}</p>
+          <p className="output-line">Type 'ls' to see contents</p>
+        </div>
+      )
+    }
+
+    return (
+      <div className="command-output">
+        <p className="output-line error">cd: {targetDir}: No such directory</p>
+        <p className="output-line">Available directories: about, projects, contact, skills</p>
+      </div>
+    )
+  }
+
+  // Helper function for grep command
+  const handleGrepCommand = (searchTerm: string): React.ReactNode => {
+    if (!searchTerm) {
+      return (
+        <div className="command-output">
+          <p className="output-line error">Usage: grep &lt;search term&gt;</p>
+          <p className="output-line">Example: grep react</p>
+        </div>
+      )
+    }
+
+    const searchableContent: Record<string, string[]> = {
+      skills: ['React', 'TypeScript', 'JavaScript', 'Python', 'Node.js', 'Docker', 'AWS', 'GraphQL'],
+      about: ['Full Stack Developer', 'Technology', 'Innovation', 'Problem Solving'],
+      contact: ['Email: banthiya.rishab1511@gmail.com', 'LinkedIn', 'GitHub'],
+      projects: ['Web Applications', 'Full Stack', 'API Development', 'UI/UX Design'],
+    }
+
+    const results: string[] = []
+    const lowerSearch = searchTerm.toLowerCase()
+
+    Object.entries(searchableContent).forEach(([category, items]) => {
+      items.forEach(item => {
+        if (item.toLowerCase().includes(lowerSearch)) {
+          results.push(`${category}: ${item}`)
+        }
+      })
+    })
+
+    if (results.length === 0) {
+      return (
+        <div className="command-output">
+          <p className="output-line">No matches found for "{searchTerm}"</p>
+        </div>
+      )
+    }
+
+    return (
+      <div className="command-output">
+        <p className="output-line success">Found {results.length} match(es):</p>
+        {results.map((result, idx) => (
+          <p key={idx} className="output-line">{result}</p>
+        ))}
+      </div>
+    )
+  }
+
+  // Helper function for pipe operator
+  const handlePipeCommand = (fullCommand: string): React.ReactNode => {
+    const commands = fullCommand.split(' | ').map(cmd => cmd.trim())
+    
+    if (commands.length < 2) {
+      return (
+        <div className="command-output">
+          <p className="output-line error">Invalid pipe usage</p>
+        </div>
+      )
+    }
+
+    // For now, support simple pipes like "history | grep term"
+    const firstCmd = commands[0].toLowerCase()
+    const secondCmd = commands[1].toLowerCase()
+
+    if (firstCmd === 'history' && secondCmd.startsWith('grep ')) {
+      const searchTerm = secondCmd.substring(5).toLowerCase()
+      const filtered = commandHistory.filter(cmd => 
+        cmd.toLowerCase().includes(searchTerm)
+      )
+
+      return (
+        <div className="command-output">
+          {filtered.length === 0 ? (
+            <p className="output-line">No matches found</p>
+          ) : (
+            filtered.map((cmd, idx) => (
+              <p key={idx} className="output-line">{cmd}</p>
+            ))
+          )}
+        </div>
+      )
+    }
+
+    return (
+      <div className="command-output">
+        <p className="output-line">Pipe combination not yet supported</p>
+        <p className="output-line">Try: history | grep &lt;term&gt;</p>
+      </div>
+    )
   }
 
   const welcomeMessage = () => (
@@ -218,21 +668,32 @@ const Terminal: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const trimmedCommand = currentCommand.trim().toLowerCase()
+    const trimmedCommand = currentCommand.trim()
 
     if (!trimmedCommand) {
       setCurrentCommand('')
       return
     }
 
-    if (trimmedCommand === 'clear') {
+    // Add to command history
+    setCommandHistory([...commandHistory, trimmedCommand])
+
+    if (trimmedCommand.toLowerCase() === 'clear') {
       setHistory([])
       setCurrentCommand('')
       return
     }
 
+    // Handle pipe operator
+    if (trimmedCommand.includes(' | ')) {
+      const pipeOutput = handlePipeCommand(trimmedCommand)
+      setHistory([...history, { command: currentCommand, output: pipeOutput }])
+      setCurrentCommand('')
+      return
+    }
+
     let output: React.ReactNode
-    const commandParts = trimmedCommand.split(' ')
+    const commandParts = trimmedCommand.toLowerCase().split(' ')
     const baseCommand = commandParts[0]
 
     // Handle "play [game]" command
@@ -290,9 +751,34 @@ const Terminal: React.FC = () => {
           </div>
         )
       }
+    } else if (baseCommand === 'cat') {
+      const filename = commandParts[1]
+      output = handleCatCommand(filename)
+    } else if (baseCommand === 'history') {
+      output = (
+        <div className="command-output">
+          {commandHistory.length === 0 ? (
+            <p className="output-line">No command history yet.</p>
+          ) : (
+            commandHistory.map((cmd, idx) => (
+              <p key={idx} className="output-line">
+                {idx + 1}  {cmd}
+              </p>
+            ))
+          )}
+        </div>
+      )
+    } else if (baseCommand === 'weather') {
+      output = handleWeatherCommand()
+    } else if (baseCommand === 'cd') {
+      const targetDir = commandParts[1] || '~'
+      output = handleCdCommand(targetDir)
+    } else if (baseCommand === 'grep') {
+      const searchTerm = commandParts.slice(1).join(' ')
+      output = handleGrepCommand(searchTerm)
     } else if (commands[baseCommand]) {
       output = commands[baseCommand]()
-    } else if (trimmedCommand.startsWith('echo ')) {
+    } else if (trimmedCommand.toLowerCase().startsWith('echo ')) {
       output = (
         <div className="command-output">
           <p className="output-line">{currentCommand.substring(5)}</p>
@@ -329,7 +815,7 @@ const Terminal: React.FC = () => {
           <span className="terminal-button minimize"></span>
           <span className="terminal-button maximize"></span>
         </div>
-        <div className="terminal-title">visitor@rishab:~</div>
+        <div className="terminal-title">visitor@rishab:{currentDirectory}</div>
       </div>
       <div className="terminal-container" onClick={handleTerminalClick}>
         <div className="terminal-body" ref={terminalRef}>
@@ -337,7 +823,7 @@ const Terminal: React.FC = () => {
             <div key={index}>
               {item.command && (
                 <div className="terminal-input-line">
-                  <span className="terminal-prompt">visitor@rishab:~$</span>
+                  <span className="terminal-prompt">visitor@rishab:{currentDirectory}$</span>
                   <span className="terminal-command">{item.command}</span>
                 </div>
               )}
@@ -347,19 +833,30 @@ const Terminal: React.FC = () => {
           <form onSubmit={handleSubmit} className="terminal-input-form">
             <div className="terminal-input-line">
               <label htmlFor="terminal-input" className="terminal-prompt">
-                visitor@rishab:~$
+                visitor@rishab:{currentDirectory}$
               </label>
-              <input
-                id="terminal-input"
-                ref={inputRef}
-                type="text"
-                value={currentCommand}
-                onChange={(e) => setCurrentCommand(e.target.value)}
-                className="terminal-input"
-                autoFocus
-                autoComplete="off"
-                spellCheck="false"
-              />
+              <div className="terminal-input-wrapper">
+                <input
+                  id="terminal-input"
+                  ref={inputRef}
+                  type="text"
+                  value={currentCommand}
+                  onChange={(e) => handleInputChange(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="terminal-input"
+                  autoFocus
+                  autoComplete="off"
+                  spellCheck="false"
+                />
+                {suggestion && currentCommand && (
+                  <span className="terminal-suggestion">
+                    {currentCommand}
+                    <span className="suggestion-text">
+                      {suggestion.substring(currentCommand.length)}
+                    </span>
+                  </span>
+                )}
+              </div>
             </div>
           </form>
         </div>
