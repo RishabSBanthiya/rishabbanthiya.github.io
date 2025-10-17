@@ -317,6 +317,7 @@ const Terminal: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null)
   const terminalRef = useRef<HTMLDivElement>(null)
   const headerRef = useRef<HTMLDivElement>(null)
+  const isNavigatingHistory = useRef<boolean>(false)
 
   const commands: Record<string, () => React.ReactNode> = {
     help: () => (
@@ -610,7 +611,11 @@ const Terminal: React.FC = () => {
   // Handle input change with autocomplete
   const handleInputChange = (value: string) => {
     setCurrentCommand(value)
-    setHistoryIndex(-1) // Reset history navigation when typing
+    // Only reset history navigation when user is manually typing (not using arrow keys)
+    if (!isNavigatingHistory.current) {
+      setHistoryIndex(-1)
+    }
+    isNavigatingHistory.current = false
     const autocompletion = getAutocomplete(value)
     setSuggestion(autocompletion)
   }
@@ -631,6 +636,7 @@ const Terminal: React.FC = () => {
         ? commandHistory.length - 1 
         : Math.max(0, historyIndex - 1)
       
+      isNavigatingHistory.current = true
       setHistoryIndex(newIndex)
       setCurrentCommand(commandHistory[newIndex])
       setSuggestion('')
@@ -640,6 +646,7 @@ const Terminal: React.FC = () => {
       
       const newIndex = historyIndex + 1
       
+      isNavigatingHistory.current = true
       if (newIndex >= commandHistory.length) {
         setHistoryIndex(-1)
         setCurrentCommand('')
