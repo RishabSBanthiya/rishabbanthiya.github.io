@@ -35,7 +35,7 @@ const Navbar: React.FC = () => {
                 rel="noopener noreferrer"
                 onClick={handleNavLinkClick}
               >
-                <i className="fab fa-linkedin"></i> linkedin
+                <i className="fab fa-linkedin"></i> linkedin!!
               </a>
             </li>
             <li className="nav-item">
