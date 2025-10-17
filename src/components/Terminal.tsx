@@ -303,6 +303,16 @@ What would you like to know?`
 Try asking something like "What are Rishab's skills?" or "Tell me about his experience" and I'll be happy to help!`
 }
 
+// Helper function to parse command flags
+const parseCommand = (command: string) => {
+  const parts = command.split(' ')
+  const baseCommand = parts[0].toLowerCase()
+  const args = parts.slice(1)
+  const flags = args.filter(arg => arg.startsWith('-'))
+  const params = args.filter(arg => !arg.startsWith('-'))
+  return { baseCommand, args, flags, params }
+}
+
 const Terminal: React.FC = () => {
   const [history, setHistory] = useState<CommandHistory[]>([])
   const [currentCommand, setCurrentCommand] = useState('')
@@ -397,6 +407,54 @@ const Terminal: React.FC = () => {
             <div className="command-item">
               <span className="cmd-name">help</span>
               <span className="cmd-desc">Show this help message</span>
+            </div>
+            <div className="command-item">
+              <span className="cmd-name">skills</span>
+              <span className="cmd-desc">Display technical skills by category</span>
+            </div>
+            <div className="command-item">
+              <span className="cmd-name">experience</span>
+              <span className="cmd-desc">Show professional experience timeline</span>
+            </div>
+            <div className="command-item">
+              <span className="cmd-name">education</span>
+              <span className="cmd-desc">View education and learning background</span>
+            </div>
+            <div className="command-item">
+              <span className="cmd-name">timeline</span>
+              <span className="cmd-desc">Show career development timeline</span>
+            </div>
+            <div className="command-item">
+              <span className="cmd-name">uname</span>
+              <span className="cmd-desc">Show system information</span>
+            </div>
+            <div className="command-item">
+              <span className="cmd-name">uptime</span>
+              <span className="cmd-desc">Show portfolio uptime and current time</span>
+            </div>
+            <div className="command-item">
+              <span className="cmd-name">man</span>
+              <span className="cmd-desc">Display manual for all commands</span>
+            </div>
+            <div className="command-item">
+              <span className="cmd-name">which &lt;cmd&gt;</span>
+              <span className="cmd-desc">Show command location</span>
+            </div>
+            <div className="command-item">
+              <span className="cmd-name">alias</span>
+              <span className="cmd-desc">Show terminal aliases</span>
+            </div>
+            <div className="command-item">
+              <span className="cmd-name">export</span>
+              <span className="cmd-desc">Show environment variables</span>
+            </div>
+            <div className="command-item">
+              <span className="cmd-name">set</span>
+              <span className="cmd-desc">Show terminal settings</span>
+            </div>
+            <div className="command-item">
+              <span className="cmd-name">history [flags]</span>
+              <span className="cmd-desc">--clear, --count, --search &lt;term&gt;</span>
             </div>
           </div>
         </div>
@@ -533,6 +591,146 @@ const Terminal: React.FC = () => {
       const response = processAIQuery(query)
       return <AIAgentResponse response={response} />
     },
+
+    // NEW SYSTEM COMMANDS
+    uname: () => (
+      <div className="command-output">
+        <p className="output-line">System: Portfolio Terminal</p>
+        <p className="output-line">OS: Modern Web (React + TypeScript)</p>
+        <p className="output-line">Kernel: Vite 4.5.14</p>
+        <p className="output-line">Platform: Web Browser</p>
+      </div>
+    ),
+
+    uptime: () => {
+      const now = new Date()
+      const daysSinceBirth = Math.floor((now.getTime() - new Date(2020, 0, 1).getTime()) / (1000 * 60 * 60 * 24))
+      return (
+        <div className="command-output">
+          <p className="output-line">Portfolio uptime: {daysSinceBirth}+ days</p>
+          <p className="output-line">Current time: {now.toLocaleString()}</p>
+          <p className="output-line">Status: Online and accepting connections 🟢</p>
+        </div>
+      )
+    },
+
+    man: () => (
+      <div className="command-output">
+        <p className="output-line"><strong>Available Commands Manual:</strong></p>
+        <p className="output-line"></p>
+        <p className="output-line"><strong>Navigation:</strong> about, contact, projects, skills, experience</p>
+        <p className="output-line"><strong>Files:</strong> cat [file], ls [-la/-l], pwd</p>
+        <p className="output-line"><strong>Search:</strong> grep [term], history [--search/--clear/--count]</p>
+        <p className="output-line"><strong>System:</strong> uname, uptime, date, whoami, neofetch</p>
+        <p className="output-line"><strong>Tools:</strong> ssh [url], play [pong/dino], weather, ping</p>
+        <p className="output-line"><strong>Advanced:</strong> alias, export, set, which [cmd]</p>
+        <p className="output-line"></p>
+        <p className="output-line">Use: man [command] for more details</p>
+      </div>
+    ),
+
+    which: () => (
+      <div className="command-output">
+        <p className="output-line">/portfolio/bin/terminal</p>
+        <p className="output-line">All commands are built-in to this terminal interface</p>
+      </div>
+    ),
+
+    alias: () => (
+      <div className="command-output">
+        <p className="output-line"><strong>Terminal Aliases:</strong></p>
+        <p className="output-line">ls → list directory contents</p>
+        <p className="output-line">exp → show experience</p>
+        <p className="output-line">edu → show education</p>
+        <p className="output-line">tech → show technologies</p>
+        <p className="output-line">info → show system information</p>
+      </div>
+    ),
+
+    export: () => (
+      <div className="command-output">
+        <p className="output-line"><strong>Environment Variables:</strong></p>
+        <p className="output-line">USER=rishab-banthiya</p>
+        <p className="output-line">HOME=/portfolio</p>
+        <p className="output-line">SHELL=/bin/terminal</p>
+        <p className="output-line">ROLE=Full Stack Developer</p>
+        <p className="output-line">STATUS=Open to opportunities</p>
+      </div>
+    ),
+
+    set: () => (
+      <div className="command-output">
+        <p className="output-line"><strong>Terminal Settings:</strong></p>
+        <p className="output-line">theme=dark</p>
+        <p className="output-line">language=JavaScript/TypeScript</p>
+        <p className="output-line">font=monospace</p>
+        <p className="output-line">animations=enabled</p>
+        <p className="output-line">autocomplete=enabled</p>
+      </div>
+    ),
+
+    skills: () => (
+      <div className="command-output">
+        <p className="output-line"><strong>Technical Skills:</strong></p>
+        <p className="output-line"></p>
+        <p className="output-line"><strong>Languages:</strong> JavaScript, TypeScript, Python, Java</p>
+        <p className="output-line"><strong>Frontend:</strong> React, Next.js, HTML/CSS, Bootstrap, Tailwind</p>
+        <p className="output-line"><strong>Backend:</strong> Node.js, Express, Django, GraphQL, REST APIs</p>
+        <p className="output-line"><strong>Databases:</strong> PostgreSQL, MongoDB, Redis, Supabase</p>
+        <p className="output-line"><strong>Cloud:</strong> AWS, Docker, Kubernetes, Vercel, Netlify</p>
+        <p className="output-line"><strong>Tools:</strong> Git, CI/CD, Agile, VS Code, Figma</p>
+        <p className="output-line"></p>
+        <p className="output-line">Learning: Rust, Web3, AI/ML, Blockchain</p>
+      </div>
+    ),
+
+    experience: () => (
+      <div className="command-output">
+        <p className="output-line"><strong>Professional Experience:</strong></p>
+        <p className="output-line"></p>
+        <p className="output-line"><strong>[2023-Present]</strong> Full Stack Developer</p>
+        <p className="output-line">  • Building scalable web applications</p>
+        <p className="output-line">  • Working with modern tech stack</p>
+        <p className="output-line">  • Leading development initiatives</p>
+        <p className="output-line"></p>
+        <p className="output-line"><strong>[2022-2023]</strong> Software Engineer</p>
+        <p className="output-line">  • Developed features for production applications</p>
+        <p className="output-line">  • Collaborated with cross-functional teams</p>
+        <p className="output-line">  • Implemented CI/CD pipelines</p>
+        <p className="output-line"></p>
+        <p className="output-line"><strong>[2020-2022]</strong> Student & Learning</p>
+        <p className="output-line">  • Computer Science fundamentals</p>
+        <p className="output-line">  • Building projects and open source contributions</p>
+      </div>
+    ),
+
+    education: () => (
+      <div className="command-output">
+        <p className="output-line"><strong>Education:</strong></p>
+        <p className="output-line"></p>
+        <p className="output-line">Computer Science Studies (2020-2022)</p>
+        <p className="output-line">Focus on full-stack web development</p>
+        <p className="output-line"></p>
+        <p className="output-line"><strong>Self-Learning Achievements:</strong></p>
+        <p className="output-line">✓ Modern web technologies (React, TypeScript)</p>
+        <p className="output-line">✓ Backend development (Node.js, databases)</p>
+        <p className="output-line">✓ Cloud platforms (AWS, Docker)</p>
+        <p className="output-line">✓ DevOps & CI/CD practices</p>
+      </div>
+    ),
+
+    timeline: () => (
+      <div className="command-output">
+        <p className="output-line"><strong>Career Timeline:</strong></p>
+        <p className="output-line"></p>
+        <p className="output-line">2020 ──► Started learning computer science</p>
+        <p className="output-line">2021 ──► First coding projects, open source contributions</p>
+        <p className="output-line">2022 ──► Internship & freelance work</p>
+        <p className="output-line">2023 ──► Full Stack Developer role</p>
+        <p className="output-line">2024 ──► Advanced projects & leadership</p>
+        <p className="output-line">2025 ──► Open to new opportunities 🚀</p>
+      </div>
+    ),
   }
 
   // Get all available commands for autocomplete
@@ -549,6 +747,17 @@ const Terminal: React.FC = () => {
     'ping',
     'echo',
     'ai',
+    'uname',
+    'uptime',
+    'man',
+    'which',
+    'alias',
+    'export',
+    'set',
+    'skills',
+    'experience',
+    'education',
+    'timeline',
   ]
 
   // Available files for cat command
@@ -1074,19 +1283,53 @@ Feel free to reach out for:
       const filename = commandParts[1]
       output = handleCatCommand(filename)
     } else if (baseCommand === 'history') {
-      output = (
-        <div className="command-output">
-          {commandHistory.length === 0 ? (
-            <p className="output-line">No command history yet.</p>
-          ) : (
-            commandHistory.map((cmd, idx) => (
-              <p key={idx} className="output-line">
-                {idx + 1}  {cmd}
-              </p>
-            ))
-          )}
-        </div>
-      )
+      const { flags, params } = parseCommand(trimmedCommand)
+      
+      if (flags.includes('--clear') || flags.includes('-c')) {
+        setCommandHistory([])
+        output = (
+          <div className="command-output">
+            <p className="output-line success">Command history cleared</p>
+          </div>
+        )
+      } else if (flags.includes('--count')) {
+        output = (
+          <div className="command-output">
+            <p className="output-line">Total commands: {commandHistory.length}</p>
+          </div>
+        )
+      } else if (flags.includes('--search') || flags.includes('-s')) {
+        const searchTerm = params[0]?.toLowerCase() || ''
+        const filtered = commandHistory.filter(cmd => cmd.toLowerCase().includes(searchTerm))
+        output = (
+          <div className="command-output">
+            {filtered.length === 0 ? (
+              <p className="output-line">No commands found matching "{searchTerm}"</p>
+            ) : (
+              <>
+                <p className="output-line">Found {filtered.length} command(s):</p>
+                {filtered.map((cmd, idx) => (
+                  <p key={idx} className="output-line">{cmd}</p>
+                ))}
+              </>
+            )}
+          </div>
+        )
+      } else {
+        output = (
+          <div className="command-output">
+            {commandHistory.length === 0 ? (
+              <p className="output-line">No command history yet.</p>
+            ) : (
+              commandHistory.map((cmd, idx) => (
+                <p key={idx} className="output-line">
+                  {idx + 1}  {cmd}
+                </p>
+              ))
+            )}
+          </div>
+        )
+      }
     } else if (baseCommand === 'weather') {
       output = handleWeatherCommand()
     } else if (baseCommand === 'cd') {
