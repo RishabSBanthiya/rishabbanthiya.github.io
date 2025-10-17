@@ -628,6 +628,9 @@ const Terminal: React.FC = () => {
 
   // Handle Tab key for autocomplete and arrow keys for history
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Debug ALL key presses
+    setDebugInfo(prev => [...prev.slice(-4), `🔑 Key pressed: "${e.key}" | code: "${e.code}"`])
+    
     if (e.key === 'Tab') {
       e.preventDefault()
       // Accept history preview first, then autocomplete suggestion
@@ -938,6 +941,16 @@ Feel free to reach out for:
 
   useEffect(() => {
     setHistory([{ command: '', output: welcomeMessage() }])
+    
+    // Global arrow key listener for debugging
+    const globalKeyHandler = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        setDebugInfo(prev => [...prev.slice(-4), `🌍 Global key detected: ${e.key} (target: ${(e.target as HTMLElement)?.tagName})`])
+      }
+    }
+    
+    document.addEventListener('keydown', globalKeyHandler)
+    return () => document.removeEventListener('keydown', globalKeyHandler)
   }, [])
 
   useEffect(() => {
