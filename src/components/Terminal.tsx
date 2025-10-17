@@ -54,12 +54,12 @@ const Terminal: React.FC = () => {
               <span className="cmd-desc">View my projects</span>
             </div>
             <div className="command-item">
-              <span className="cmd-name">play pong</span>
-              <span className="cmd-desc">Play a game of Pong!</span>
+              <span className="cmd-name">play [game]</span>
+              <span className="cmd-desc">Play a game of Pong or Dino!</span>
             </div>
             <div className="command-item">
-              <span className="cmd-name">play dino</span>
-              <span className="cmd-desc">Play the Chrome Dino game!</span>
+              <span className="cmd-name">ssh &lt;url&gt;</span>
+              <span className="cmd-desc">Open a URL in a new tab</span>
             </div>
             <div className="command-item">
               <span className="cmd-name">clear</span>
@@ -257,6 +257,36 @@ const Terminal: React.FC = () => {
           <div className="command-output">
             <p className="output-line error">Unknown game: {game || 'none'}</p>
             <p className="output-line">Available games: pong, dino</p>
+          </div>
+        )
+      }
+    } else if (baseCommand === 'ssh') {
+      const url = commandParts.slice(1).join(' ')
+      if (url) {
+        // Add protocol if not present
+        let fullUrl = url
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+          fullUrl = 'https://' + url
+        }
+        try {
+          window.open(fullUrl, '_blank', 'noopener,noreferrer')
+          output = (
+            <div className="command-output">
+              <p className="output-line success">Opening {url}...</p>
+            </div>
+          )
+        } catch (error) {
+          output = (
+            <div className="command-output">
+              <p className="output-line error">Failed to open URL</p>
+            </div>
+          )
+        }
+      } else {
+        output = (
+          <div className="command-output">
+            <p className="output-line error">Usage: ssh &lt;url&gt;</p>
+            <p className="output-line">Example: ssh google.com</p>
           </div>
         )
       }
