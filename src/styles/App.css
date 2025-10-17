@@ -1,17 +1,182 @@
-/* App-specific styles */
+/* App-specific styles - Retro Theme */
 .App {
   min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Retro grid background */
+.App::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
 }
 
 .larger-first-line {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
+  font-family: 'Orbitron', monospace;
+  font-weight: 700;
+  color: #00ff41;
+  text-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    text-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+  }
+  to {
+    text-shadow: 0 0 30px rgba(0, 255, 65, 0.8), 0 0 40px rgba(0, 255, 65, 0.3);
+  }
 }
 
 .left-align {
   text-align: left;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1.1rem;
+  color: #ffffff;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.left-align::before {
+  content: '> ';
+  color: #00ff41;
+  font-weight: bold;
 }
 
 .larger-header {
   font-size: 1.1rem;
+}
+
+/* Retro terminal-style collapse */
+.collapse {
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid #00ff41;
+  border-radius: 5px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.collapse p {
+  color: #ffffff;
+  font-family: 'Share Tech Mono', monospace;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.collapse p::before {
+  content: '// ';
+  color: #00ff41;
+  font-weight: bold;
+}
+
+/* Retro Terminal Styling */
+.retro-terminal {
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid #00ff41;
+  border-radius: 10px;
+  margin: 20px auto;
+  max-width: 800px;
+  box-shadow: 
+    0 0 30px rgba(0, 255, 65, 0.5),
+    inset 0 0 30px rgba(0, 255, 65, 0.1);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.terminal-header {
+  background: linear-gradient(90deg, #1a1a1a, #2a2a2a);
+  padding: 10px 15px;
+  border-bottom: 1px solid #00ff41;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.terminal-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.terminal-button {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.terminal-button.red {
+  background: #ff5f56;
+  box-shadow: 0 0 5px rgba(255, 95, 86, 0.5);
+}
+
+.terminal-button.yellow {
+  background: #ffbd2e;
+  box-shadow: 0 0 5px rgba(255, 189, 46, 0.5);
+}
+
+.terminal-button.green {
+  background: #27ca3f;
+  box-shadow: 0 0 5px rgba(39, 202, 63, 0.5);
+}
+
+.terminal-title {
+  color: #00ff41;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.terminal-body {
+  padding: 30px;
+  min-height: 200px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .larger-first-line {
+    font-size: 2rem;
+  }
+  
+  .terminal-body {
+    padding: 20px;
+  }
+  
+  .button-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .custom-button {
+    width: 200px;
+  }
 }

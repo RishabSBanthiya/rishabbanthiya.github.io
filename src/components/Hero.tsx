@@ -14,24 +14,38 @@ const Hero: React.FC = () => {
       </div>
 
       <div className="container mt-5 text-center">
-        <h5 className="larger-first-line">Hey, I'm Rishab - I like to build.</h5>
-        <p className="left-align">Hack, hack. I'm in the mainframe.</p>
+        <div className="retro-terminal">
+          <div className="terminal-header">
+            <div className="terminal-buttons">
+              <span className="terminal-button red"></span>
+              <span className="terminal-button yellow"></span>
+              <span className="terminal-button green"></span>
+            </div>
+            <div className="terminal-title">rishab@terminal:~$</div>
+          </div>
+          <div className="terminal-body">
+            <h5 className="larger-first-line">Hey, I'm Rishab - I like to build.</h5>
+            <p className="left-align">Hack, hack. I'm in the mainframe.</p>
+          </div>
+        </div>
 
-        <a
-          href="mailto:banthiya.rishab1511@gmail.com"
-          className="btn btn-outline-dark custom-button"
-          role="button"
-        >
-          Contact Me
-        </a>
+        <div className="button-container mt-4">
+          <a
+            href="mailto:banthiya.rishab1511@gmail.com"
+            className="btn btn-outline-dark custom-button"
+            role="button"
+          >
+            Contact Me
+          </a>
 
-        <button
-          className="btn btn-outline-dark custom-button"
-          type="button"
-          onClick={toggleAboutMe}
-        >
-          About Me
-        </button>
+          <button
+            className="btn btn-outline-dark custom-button"
+            type="button"
+            onClick={toggleAboutMe}
+          >
+            About Me
+          </button>
+        </div>
 
         <div className={`collapse mt-3 ${isAboutMeVisible ? 'show' : ''}`}>
           <p className="left-align">
