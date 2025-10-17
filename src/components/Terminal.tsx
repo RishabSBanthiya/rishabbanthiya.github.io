@@ -144,7 +144,7 @@ const Terminal: React.FC = () => {
 ╚═╝  ╚═╝╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
 `}
       </pre>
-      <p className="output-line">Welcome to Rishab's portfolio. Type 'help' to get started.</p>
+      <p className="output-line">Welcome to Rishab's portfolio! Type 'help' to get started.</p>
       <p className="output-line"></p>
     </div>
   )
