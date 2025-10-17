@@ -24,7 +24,7 @@ const Hero: React.FC = () => {
             <div className="terminal-title">rishab@terminal:~$</div>
           </div>
           <div className="terminal-body">
-            <h5 className="larger-first-line">Hey, I'm Rishab - I like to build.</h5>
+            <h5 className="larger-first-line">Hey, I'm Rishab - I like to build. [FRESH BUILD]</h5>
             <p className="left-align">Hack, hack. I'm in the mainframe.</p>
           </div>
         </div>

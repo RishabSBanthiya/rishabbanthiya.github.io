@@ -7,6 +7,9 @@ function App() {
     <div className="App">
       <Navbar />
       <Hero />
+      <div style={{color: 'red', fontSize: '24px', textAlign: 'center', marginTop: '20px'}}>
+        TEST: App component is working!
+      </div>
     </div>
   )
 }
