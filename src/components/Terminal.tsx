@@ -193,37 +193,47 @@ const Terminal: React.FC = () => {
   }
 
   return (
-    <div className="terminal-container" onClick={handleTerminalClick}>
-      <div className="terminal-body" ref={terminalRef}>
-        {history.map((item, index) => (
-          <div key={index}>
-            {item.command && (
-              <div className="terminal-input-line">
-                <span className="terminal-prompt">visitor@rishab:~$</span>
-                <span className="terminal-command">{item.command}</span>
-              </div>
-            )}
-            {item.output}
-          </div>
-        ))}
-        <form onSubmit={handleSubmit} className="terminal-input-form">
-          <div className="terminal-input-line">
-            <label htmlFor="terminal-input" className="terminal-prompt">
-              visitor@rishab:~$
-            </label>
-            <input
-              id="terminal-input"
-              ref={inputRef}
-              type="text"
-              value={currentCommand}
-              onChange={(e) => setCurrentCommand(e.target.value)}
-              className="terminal-input"
-              autoFocus
-              autoComplete="off"
-              spellCheck="false"
-            />
-          </div>
-        </form>
+    <div className="terminal-wrapper">
+      <div className="terminal-header">
+        <div className="terminal-buttons">
+          <span className="terminal-button close"></span>
+          <span className="terminal-button minimize"></span>
+          <span className="terminal-button maximize"></span>
+        </div>
+        <div className="terminal-title">visitor@rishab:~</div>
+      </div>
+      <div className="terminal-container" onClick={handleTerminalClick}>
+        <div className="terminal-body" ref={terminalRef}>
+          {history.map((item, index) => (
+            <div key={index}>
+              {item.command && (
+                <div className="terminal-input-line">
+                  <span className="terminal-prompt">visitor@rishab:~$</span>
+                  <span className="terminal-command">{item.command}</span>
+                </div>
+              )}
+              {item.output}
+            </div>
+          ))}
+          <form onSubmit={handleSubmit} className="terminal-input-form">
+            <div className="terminal-input-line">
+              <label htmlFor="terminal-input" className="terminal-prompt">
+                visitor@rishab:~$
+              </label>
+              <input
+                id="terminal-input"
+                ref={inputRef}
+                type="text"
+                value={currentCommand}
+                onChange={(e) => setCurrentCommand(e.target.value)}
+                className="terminal-input"
+                autoFocus
+                autoComplete="off"
+                spellCheck="false"
+              />
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   )
