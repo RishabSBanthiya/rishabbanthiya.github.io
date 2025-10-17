@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
+import PongGame from './PongGame'
+import DinoGame from './DinoGame'
 
 interface CommandHistory {
   command: string
@@ -16,6 +18,7 @@ const Terminal: React.FC = () => {
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const [dragOffset, setDragOffset] = useState<Position>({ x: 0, y: 0 })
+  const [activeGame, setActiveGame] = useState<'pong' | 'dino' | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const terminalRef = useRef<HTMLDivElement>(null)
   const headerRef = useRef<HTMLDivElement>(null)
@@ -49,6 +52,14 @@ const Terminal: React.FC = () => {
             <div className="command-item">
               <span className="cmd-name">projects</span>
               <span className="cmd-desc">View my projects</span>
+            </div>
+            <div className="command-item">
+              <span className="cmd-name">play pong</span>
+              <span className="cmd-desc">Play a game of Pong!</span>
+            </div>
+            <div className="command-item">
+              <span className="cmd-name">play dino</span>
+              <span className="cmd-desc">Play the Chrome Dino game!</span>
             </div>
             <div className="command-item">
               <span className="cmd-name">clear</span>
@@ -221,9 +232,35 @@ const Terminal: React.FC = () => {
     }
 
     let output: React.ReactNode
-    const baseCommand = trimmedCommand.split(' ')[0]
+    const commandParts = trimmedCommand.split(' ')
+    const baseCommand = commandParts[0]
 
-    if (commands[baseCommand]) {
+    // Handle "play [game]" command
+    if (baseCommand === 'play') {
+      const game = commandParts[1]
+      if (game === 'pong') {
+        setActiveGame('pong')
+        output = (
+          <div className="command-output">
+            <p className="output-line success">Loading Pong...</p>
+          </div>
+        )
+      } else if (game === 'dino') {
+        setActiveGame('dino')
+        output = (
+          <div className="command-output">
+            <p className="output-line success">Loading Dino Game...</p>
+          </div>
+        )
+      } else {
+        output = (
+          <div className="command-output">
+            <p className="output-line error">Unknown game: {game || 'none'}</p>
+            <p className="output-line">Available games: pong, dino</p>
+          </div>
+        )
+      }
+    } else if (commands[baseCommand]) {
       output = commands[baseCommand]()
     } else if (trimmedCommand.startsWith('echo ')) {
       output = (
@@ -297,6 +334,12 @@ const Terminal: React.FC = () => {
           </form>
         </div>
       </div>
+      {activeGame && (
+        <div className="terminal-overlay">
+          {activeGame === 'pong' && <PongGame onClose={() => setActiveGame(null)} />}
+          {activeGame === 'dino' && <DinoGame onClose={() => setActiveGame(null)} />}
+        </div>
+      )}
     </div>
   )
 }
