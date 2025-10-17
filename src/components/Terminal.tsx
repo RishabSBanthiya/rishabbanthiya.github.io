@@ -1152,6 +1152,14 @@ Feel free to reach out for:
                     <span className="suggestion-text">{historyPreview}</span>
                   </span>
                 )}
+                {historyPreview && currentCommand && historyPreview.startsWith(currentCommand) && (
+                  <span className="terminal-suggestion">
+                    {currentCommand}
+                    <span className="suggestion-text">
+                      {historyPreview.substring(currentCommand.length)}
+                    </span>
+                  </span>
+                )}
                 {!historyPreview && suggestion && currentCommand && (
                   <span className="terminal-suggestion">
                     {currentCommand}
