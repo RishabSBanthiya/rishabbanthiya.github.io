@@ -314,6 +314,7 @@ const Terminal: React.FC = () => {
   const [historyIndex, setHistoryIndex] = useState<number>(-1)
   const [currentDirectory, setCurrentDirectory] = useState('~')
   const [suggestion, setSuggestion] = useState('')
+  const [historyPreview, setHistoryPreview] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const terminalRef = useRef<HTMLDivElement>(null)
   const headerRef = useRef<HTMLDivElement>(null)
@@ -618,6 +619,7 @@ const Terminal: React.FC = () => {
     // Only reset history navigation when user is manually typing (not using arrow keys)
     if (!wasNavigating) {
       setHistoryIndex(-1)
+      setHistoryPreview('')
     }
     const autocompletion = getAutocomplete(value)
     setSuggestion(autocompletion)
@@ -627,9 +629,22 @@ const Terminal: React.FC = () => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Tab') {
       e.preventDefault()
-      if (suggestion) {
+      // Accept history preview first, then autocomplete suggestion
+      if (historyPreview) {
+        setCurrentCommand(historyPreview)
+        setHistoryPreview('')
+        setHistoryIndex(-1)
+      } else if (suggestion) {
         setCurrentCommand(suggestion)
         setSuggestion('')
+      }
+    } else if (e.key === 'ArrowRight') {
+      // Accept history preview with right arrow
+      if (historyPreview && currentCommand === '') {
+        e.preventDefault()
+        setCurrentCommand(historyPreview)
+        setHistoryPreview('')
+        setHistoryIndex(-1)
       }
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
@@ -641,7 +656,7 @@ const Terminal: React.FC = () => {
       
       isNavigatingHistory.current = true
       setHistoryIndex(newIndex)
-      setCurrentCommand(commandHistory[newIndex])
+      setHistoryPreview(commandHistory[newIndex])
       setSuggestion('')
     } else if (e.key === 'ArrowDown') {
       e.preventDefault()
@@ -652,10 +667,10 @@ const Terminal: React.FC = () => {
       isNavigatingHistory.current = true
       if (newIndex >= commandHistory.length) {
         setHistoryIndex(-1)
-        setCurrentCommand('')
+        setHistoryPreview('')
       } else {
         setHistoryIndex(newIndex)
-        setCurrentCommand(commandHistory[newIndex])
+        setHistoryPreview(commandHistory[newIndex])
       }
       setSuggestion('')
     }
@@ -960,6 +975,7 @@ Feel free to reach out for:
     // Add to command history and reset history index
     setCommandHistory(prev => [...prev, trimmedCommand])
     setHistoryIndex(-1)
+    setHistoryPreview('')
 
     if (trimmedCommand.toLowerCase() === 'clear') {
       setHistory([])
@@ -1131,7 +1147,12 @@ Feel free to reach out for:
                   autoComplete="off"
                   spellCheck="false"
                 />
-                {suggestion && currentCommand && (
+                {historyPreview && !currentCommand && (
+                  <span className="terminal-suggestion">
+                    <span className="suggestion-text">{historyPreview}</span>
+                  </span>
+                )}
+                {!historyPreview && suggestion && currentCommand && (
                   <span className="terminal-suggestion">
                     {currentCommand}
                     <span className="suggestion-text">
