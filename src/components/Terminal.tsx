@@ -5,11 +5,20 @@ interface CommandHistory {
   output: React.ReactNode
 }
 
+interface Position {
+  x: number
+  y: number
+}
+
 const Terminal: React.FC = () => {
   const [history, setHistory] = useState<CommandHistory[]>([])
   const [currentCommand, setCurrentCommand] = useState('')
+  const [position, setPosition] = useState<Position>({ x: 0, y: 0 })
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragOffset, setDragOffset] = useState<Position>({ x: 0, y: 0 })
   const inputRef = useRef<HTMLInputElement>(null)
   const terminalRef = useRef<HTMLDivElement>(null)
+  const headerRef = useRef<HTMLDivElement>(null)
 
   const commands: Record<string, () => React.ReactNode> = {
     help: () => (
@@ -159,6 +168,43 @@ const Terminal: React.FC = () => {
     }
   }, [history])
 
+  // Drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (headerRef.current && headerRef.current.contains(e.target as Node)) {
+      setIsDragging(true)
+      // Calculate offset from click position to current terminal position
+      setDragOffset({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y,
+      })
+    }
+  }
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        setPosition({
+          x: e.clientX - dragOffset.x,
+          y: e.clientY - dragOffset.y,
+        })
+      }
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+    }
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isDragging, dragOffset])
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const trimmedCommand = currentCommand.trim().toLowerCase()
@@ -203,8 +249,14 @@ const Terminal: React.FC = () => {
   }
 
   return (
-    <div className="terminal-wrapper">
-      <div className="terminal-header">
+    <div 
+      className={`terminal-wrapper ${isDragging ? 'dragging' : ''}`}
+      style={{
+        transform: `translate(${position.x}px, ${position.y}px)`,
+      }}
+      onMouseDown={handleMouseDown}
+    >
+      <div className="terminal-header" ref={headerRef}>
         <div className="terminal-buttons">
           <span className="terminal-button close"></span>
           <span className="terminal-button minimize"></span>

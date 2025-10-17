@@ -30,6 +30,13 @@
   overflow: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   border: 1px solid #3d2f1f;
+  transition: box-shadow 0.2s ease;
+  will-change: transform;
+}
+
+.terminal-wrapper.dragging {
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
+  cursor: grabbing;
 }
 
 .terminal-header {
@@ -39,6 +46,12 @@
   align-items: center;
   gap: 12px;
   border-bottom: 1px solid #3d2f1f;
+  cursor: grab;
+  user-select: none;
+}
+
+.terminal-header:active {
+  cursor: grabbing;
 }
 
 .terminal-buttons {
