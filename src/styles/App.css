@@ -171,6 +171,16 @@
   margin-bottom: 20px;
 }
 
+.terminal-banner {
+  color: #d4a574;
+  font-family: 'Courier New', 'Courier', monospace;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  margin: 0 0 20px 0;
+  font-weight: bold;
+  overflow-x: auto;
+}
+
 .help-section {
   margin: 10px 0;
 }
@@ -249,6 +259,10 @@
   .terminal-input-line {
     gap: 8px;
   }
+
+  .terminal-banner {
+    font-size: 0.5rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -267,5 +281,9 @@
 
   .terminal-title {
     font-size: 0.8rem;
+  }
+
+  .terminal-banner {
+    font-size: 0.4rem;
   }
 }

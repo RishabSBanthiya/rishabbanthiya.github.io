@@ -134,6 +134,16 @@ const Terminal: React.FC = () => {
 
   const welcomeMessage = () => (
     <div className="welcome-message">
+      <pre className="terminal-banner">
+{`
+██████╗ ██╗███████╗██╗  ██╗██████╗ ██╗   ██╗██████╗ ███████╗
+██╔══██╗██║██╔════╝██║  ██║██╔══██╗██║   ██║██╔══██╗██╔════╝
+██████╔╝██║███████╗███████║██████╔╝██║   ██║██████╔╝███████╗
+██╔══██╗██║╚════██║██╔══██║██╔══██╗██║   ██║██╔══██╗╚════██║
+██║  ██║██║███████║██║  ██║██║  ██║╚██████╔╝██████╔╝███████║
+╚═╝  ╚═╝╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
+`}
+      </pre>
       <p className="output-line">Welcome to Rishab's portfolio. Type 'help' to get started.</p>
       <p className="output-line"></p>
     </div>
