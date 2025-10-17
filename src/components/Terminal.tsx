@@ -627,32 +627,10 @@ const Terminal: React.FC = () => {
 
   // Handle Tab key for autocomplete and arrow keys for history
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    
-    if (e.key === 'Tab') {
+    // Prevent arrow keys from moving cursor and handle history navigation
+    if (e.key === 'ArrowUp' || e.key === 'Up') {
       e.preventDefault()
-      // Accept history preview first, then autocomplete suggestion
-      if (historyPreview) {
-        setCurrentCommand(historyPreview)
-        setHistoryPreview('')
-        setHistoryIndex(-1)
-      } else if (suggestion) {
-        setCurrentCommand(suggestion)
-        setSuggestion('')
-      }
-    } else if (e.key === 'ArrowRight') {
-      // Accept history preview with right arrow
-      if (historyPreview && currentCommand === '') {
-        e.preventDefault()
-        setCurrentCommand(historyPreview)
-        setHistoryPreview('')
-        setHistoryIndex(-1)
-      }
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      
-      if (commandHistory.length === 0) {
-        return
-      }
+      if (commandHistory.length === 0) return
       
       const newIndex = historyIndex === -1 
         ? commandHistory.length - 1 
@@ -662,13 +640,12 @@ const Terminal: React.FC = () => {
       setHistoryIndex(newIndex)
       setHistoryPreview(commandHistory[newIndex])
       setSuggestion('')
-      
-    } else if (e.key === 'ArrowDown') {
+      return
+    }
+    
+    if (e.key === 'ArrowDown' || e.key === 'Down') {
       e.preventDefault()
-      
-      if (historyIndex === -1) {
-        return
-      }
+      if (historyIndex === -1) return
       
       const newIndex = historyIndex + 1
       
@@ -681,6 +658,28 @@ const Terminal: React.FC = () => {
         setHistoryPreview(commandHistory[newIndex])
       }
       setSuggestion('')
+      return
+    }
+    
+    if (e.key === 'Tab') {
+      e.preventDefault()
+      // Accept history preview first, then autocomplete suggestion
+      if (historyPreview) {
+        setCurrentCommand(historyPreview)
+        setHistoryPreview('')
+        setHistoryIndex(-1)
+      } else if (suggestion) {
+        setCurrentCommand(suggestion)
+        setSuggestion('')
+      }
+    } else if (e.key === 'ArrowRight' || e.key === 'Right') {
+      // Accept history preview with right arrow
+      if (historyPreview && currentCommand === '') {
+        e.preventDefault()
+        setCurrentCommand(historyPreview)
+        setHistoryPreview('')
+        setHistoryIndex(-1)
+      }
     }
   }
 
