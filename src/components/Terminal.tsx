@@ -610,12 +610,15 @@ const Terminal: React.FC = () => {
 
   // Handle input change with autocomplete
   const handleInputChange = (value: string) => {
+    // Check navigation status BEFORE modifying it
+    const wasNavigating = isNavigatingHistory.current
+    isNavigatingHistory.current = false
+    
     setCurrentCommand(value)
     // Only reset history navigation when user is manually typing (not using arrow keys)
-    if (!isNavigatingHistory.current) {
+    if (!wasNavigating) {
       setHistoryIndex(-1)
     }
-    isNavigatingHistory.current = false
     const autocompletion = getAutocomplete(value)
     setSuggestion(autocompletion)
   }
