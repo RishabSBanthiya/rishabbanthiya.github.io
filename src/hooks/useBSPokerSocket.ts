@@ -10,7 +10,8 @@ import {
   JoinBSRoomRequest
 } from '../types/bspoker.types'
 
-const SOCKET_URL = 'http://localhost:3001'
+// Use environment variable for production, fallback to localhost for development
+const SOCKET_URL = import.meta.env.VITE_POKER_SERVER_URL || 'http://localhost:3001'
 
 interface UseBSPokerSocketReturn {
   socket: Socket | null

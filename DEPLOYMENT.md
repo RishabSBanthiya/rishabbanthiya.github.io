@@ -76,15 +76,165 @@ Server runs on `http://localhost:3001`
 
 2. **Get deployment URL and update frontend**
 
-#### Option 3: Deploy to Render
+#### Option 3: Deploy to Render ⭐ (Recommended - Free Tier Available)
 
-1. **Create new Web Service on Render**
-2. **Connect your GitHub repo**
-3. **Configure:**
-   - Root Directory: `server`
-   - Build Command: `npm install && npm run build`
-   - Start Command: `npm start`
-4. **Update frontend with URL**
+**Step 1: Prepare Your Repository**
+
+The repository is now configured with:
+- ✅ `render.yaml` configuration file
+- ✅ `server/package.json` with Node engine specified
+- ✅ Socket hooks configured for environment variables
+- ✅ Health check endpoint at `/health`
+
+**Step 2: Create Render Account & Deploy**
+
+1. **Sign up at [render.com](https://render.com)** (free tier available)
+2. **Connect GitHub** - Authorize Render to access your repositories
+3. **Create New Web Service**:
+   - Click "New +" → "Web Service"
+   - Select your `rishabbanthiya.github.io` repository
+   - Render will auto-detect `render.yaml` (or configure manually below)
+
+**Step 3: Configure Service (if not using render.yaml)**
+
+Manual configuration if render.yaml isn't detected:
+
+```
+Name: poker-server (or any name you prefer)
+Region: Oregon (or closest to you)
+Branch: main
+Runtime: Node
+Root Directory: server
+Build Command: npm install && npm run build
+Start Command: npm start
+Plan: Free
+```
+
+**Step 4: Add Environment Variables** (Optional but recommended)
+
+In Render dashboard → Environment tab, add:
+
+```
+NODE_ENV = production
+TWITTER_BEARER_TOKEN = your_token_here (optional, for journalctl command)
+```
+
+**Step 5: Deploy**
+
+- Click "Create Web Service"
+- Render will automatically:
+  - Install dependencies
+  - Build TypeScript
+  - Start the server
+  - Assign a URL like `https://poker-server-abc123.onrender.com`
+
+**Step 6: Get Your Server URL**
+
+After deployment completes:
+- Copy your service URL from Render dashboard
+- Example: `https://poker-server-abc123.onrender.com`
+
+**Step 7: Update Frontend Configuration**
+
+Create `.env.local` in the root directory:
+
+```bash
+VITE_POKER_SERVER_URL=https://poker-server-abc123.onrender.com
+```
+
+Replace `poker-server-abc123.onrender.com` with your actual Render URL.
+
+**Step 8: Rebuild & Redeploy Frontend**
+
+```bash
+npm run build
+git add .
+git commit -m "feat: Connect to production poker server"
+git push origin main
+```
+
+**Step 9: Verify Deployment**
+
+Test your server:
+```bash
+curl https://poker-server-abc123.onrender.com/health
+```
+
+You should see:
+```json
+{
+  "status": "online",
+  "pokerRooms": 0,
+  "pokerPlayers": 0,
+  "bsPokerRooms": 0,
+  "bsPokerPlayers": 0,
+  "uptime": 123.45
+}
+```
+
+**⚠️ Important Notes for Render Free Tier:**
+
+1. **Cold Starts**: Free tier services spin down after 15 minutes of inactivity
+   - First connection may take 30-60 seconds to wake up
+   - Consider upgrading to paid tier ($7/month) for always-on service
+
+2. **Automatic Deploys**: 
+   - Enabled by default
+   - Every push to `main` branch triggers a redeploy
+
+3. **Logs & Monitoring**:
+   - View real-time logs in Render dashboard
+   - Monitor performance and errors
+   - Check `/health` endpoint for status
+
+**Troubleshooting Render Deployment:**
+
+**Problem**: Build fails with TypeScript errors
+- **Solution**: Ensure all dependencies are in `server/package.json`
+- Check Render logs for specific error messages
+
+**Problem**: Server starts but WebSocket connections fail
+- **Solution**: Verify CORS settings in `server/src/server.ts`
+- Check that Socket.io transports are configured: `['websocket', 'polling']`
+
+**Problem**: "Cannot find module" errors
+- **Solution**: Ensure `Root Directory` is set to `server`
+- Verify `Build Command` includes `npm install`
+
+**Problem**: Port binding errors
+- **Solution**: Server correctly uses `process.env.PORT || 3001`
+- Render automatically assigns PORT - don't override it
+
+**Using render.yaml for Easy Deployment:**
+
+The included `render.yaml` file automates configuration:
+
+```yaml
+services:
+  - type: web
+    name: poker-server
+    runtime: node
+    region: oregon
+    plan: free
+    rootDir: server
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+```
+
+Benefits:
+- ✅ One-click deployment
+- ✅ Version-controlled configuration
+- ✅ Easy to replicate across environments
+- ✅ Automatic health checks
+
+**Alternative: Deploy Without render.yaml**
+
+If you prefer manual configuration, simply:
+1. Don't use render.yaml
+2. Configure all settings in Render dashboard
+3. Both methods work equally well
 
 #### Option 4: Self-hosted VPS
 
@@ -102,30 +252,42 @@ pm2 save
 
 ### Environment Variables
 
-For production, create `.env` file in server directory:
+**✅ Already Configured!** The codebase now uses environment variables by default.
 
+**Frontend** (`.env.local` in root directory):
+```env
+VITE_POKER_SERVER_URL=https://your-poker-server.onrender.com
+```
+
+**Server** (`.env` in server directory):
 ```env
 NODE_ENV=production
 PORT=3001
-CORS_ORIGIN=https://rishabbanthiya.github.io
+CORS_ORIGIN=*
+TWITTER_BEARER_TOKEN=your_token_here
 ```
 
-### Update Frontend for Production
+📖 **See [ENV_SETUP.md](ENV_SETUP.md) for detailed configuration guide**
 
-In `src/hooks/usePokerSocket.ts`, change:
+### Frontend is Production-Ready!
+
+The socket hooks are **already configured** to use environment variables:
 
 ```typescript
-// Development
-const SOCKET_URL = 'http://localhost:3001'
-
-// Production
-const SOCKET_URL = process.env.VITE_POKER_SERVER_URL || 'https://your-production-server.com'
+// src/hooks/usePokerSocket.ts & useBSPokerSocket.ts
+const SOCKET_URL = import.meta.env.VITE_POKER_SERVER_URL || 'http://localhost:3001'
 ```
 
-Then rebuild:
-```bash
-npm run build
-```
+**Local Development** (no .env.local needed):
+- Uses `http://localhost:3001` automatically
+- No configuration required
+
+**Production Deployment**:
+1. Create `.env.local` with your Render URL
+2. Rebuild: `npm run build`
+3. Deploy to GitHub Pages
+
+That's it! The code automatically switches between dev and production URLs.
 
 ## 📝 Current Status
 

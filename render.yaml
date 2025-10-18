@@ -1,0 +1,19 @@
+services:
+  # Backend Poker Server
+  - type: web
+    name: poker-server
+    runtime: node
+    region: oregon
+    plan: free
+    rootDir: server
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TWITTER_BEARER_TOKEN
+        sync: false
+        # Optional: Add this manually in Render dashboard for Twitter features
+    autoDeploy: true
+
