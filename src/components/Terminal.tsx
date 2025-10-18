@@ -86,6 +86,96 @@ Data from wttr.in ☕`
   )
 }
 
+// JournalCtl Display Component (Twitter/X Feed)
+const JournalCtlDisplay: React.FC = () => {
+  const [loading, setLoading] = useState(true)
+  const [tweets, setTweets] = useState<Array<{text: string, date: string}>>([])
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    // Attempt to fetch tweets from @ri_shrub
+    // Note: Twitter API requires authentication and has CORS restrictions
+    // For production, you'd need a backend proxy service
+    
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 8000)
+
+    // Try to fetch from a public Twitter proxy service
+    // Using RSS to JSON service as an example
+    const username = 'ri_shrub'
+    const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=https://nitter.net/${username}/rss`
+    
+    fetch(apiUrl, {
+      signal: controller.signal
+    })
+      .then(res => {
+        clearTimeout(timeoutId)
+        if (res.ok) {
+          return res.json()
+        }
+        throw new Error('Failed to fetch')
+      })
+      .then(data => {
+        if (data.items && data.items.length > 0) {
+          const tweetData = data.items.slice(0, 10).map((item: any) => ({
+            text: item.title || item.description?.replace(/<[^>]*>/g, '') || '',
+            date: new Date(item.pubDate).toLocaleString()
+          }))
+          setTweets(tweetData)
+        } else {
+          throw new Error('No tweets found')
+        }
+        setLoading(false)
+      })
+      .catch(() => {
+        clearTimeout(timeoutId)
+        // Fallback: Show message with link to profile
+        setError(true)
+        setLoading(false)
+      })
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="command-output">
+        <p className="output-line">⏳ Fetching tweets from @ri_shrub...</p>
+      </div>
+    )
+  }
+
+  if (error || tweets.length === 0) {
+    return (
+      <div className="command-output">
+        <p className="output-line"><strong>-- Logs from @ri_shrub --</strong></p>
+        <p className="output-line"></p>
+        <p className="output-line">📱 Unable to fetch live tweets due to API restrictions.</p>
+        <p className="output-line"></p>
+        <p className="output-line">🔗 View latest tweets directly:</p>
+        <p className="output-line">   <a href="https://x.com/ri_shrub" target="_blank" rel="noopener noreferrer" style={{color: '#1da1f2', textDecoration: 'underline'}}>https://x.com/ri_shrub</a></p>
+        <p className="output-line"></p>
+        <p className="output-line">💡 To enable live tweet fetching, set up a backend proxy service</p>
+        <p className="output-line">   that handles Twitter API authentication and CORS.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="command-output">
+      <p className="output-line"><strong>-- Logs from @ri_shrub (Latest 10 tweets) --</strong></p>
+      <p className="output-line"></p>
+      {tweets.map((tweet, index) => (
+        <React.Fragment key={index}>
+          <p className="output-line"><span style={{color: '#555'}}>[{tweet.date}]</span></p>
+          <p className="output-line">→ {tweet.text}</p>
+          <p className="output-line"></p>
+        </React.Fragment>
+      ))}
+      <p className="output-line">────────────────────────────────────────</p>
+      <p className="output-line">View more at: <a href="https://x.com/ri_shrub" target="_blank" rel="noopener noreferrer" style={{color: '#1da1f2'}}>@ri_shrub</a></p>
+    </div>
+  )
+}
+
 // AI Agent Knowledge Base
 const aiKnowledgeBase = {
   personal: {
@@ -458,6 +548,10 @@ const Terminal: React.FC = () => {
               <span className="cmd-name">history [flags]</span>
               <span className="cmd-desc">--clear, --count, --search &lt;term&gt;</span>
             </div>
+            <div className="command-item">
+              <span className="cmd-name">journalctl</span>
+              <span className="cmd-desc">Show recent tweets from @ri_shrub</span>
+            </div>
           </div>
         </div>
       </div>
@@ -670,6 +764,8 @@ const Terminal: React.FC = () => {
         <p className="output-line">autocomplete=enabled</p>
       </div>
     ),
+
+    journalctl: () => <JournalCtlDisplay />,
 
     skills: () => (
       <div className="command-output">
