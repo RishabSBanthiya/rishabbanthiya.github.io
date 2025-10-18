@@ -26,6 +26,7 @@ const io = new Server(httpServer, {
   cors: {
     origin: [
       'https://rishabbanthiya.github.io',
+      'https://rishab-banthiya.com',
       'http://localhost:5173',
       'http://localhost:3000'
     ],
@@ -36,8 +37,16 @@ const io = new Server(httpServer, {
   allowEIO3: true // Enable compatibility
 })
 
-// Middleware
-app.use(cors())
+// Middleware - match Socket.IO CORS config
+app.use(cors({
+  origin: [
+    'https://rishabbanthiya.github.io',
+    'https://rishab-banthiya.com',
+    'http://localhost:5173',
+    'http://localhost:3000'
+  ],
+  credentials: true
+}))
 app.use(express.json())
 
 // Central room managers
