@@ -1,12 +1,13 @@
-/* Global styles - Brown/Beige Terminal Theme */
+/* Global styles - Themed */
 body {
   font-family: 'Courier New', 'Courier', monospace;
-  background: #1a1410;
-  color: #d4a574;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   margin: 0;
   padding: 0;
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 * {

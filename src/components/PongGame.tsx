@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { useTheme } from '../contexts/ThemeContext'
 
 interface PongGameProps {
   onClose: () => void
@@ -10,6 +11,7 @@ interface Position {
 }
 
 const PongGame: React.FC<PongGameProps> = ({ onClose }) => {
+  const { theme } = useTheme()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [score, setScore] = useState(0)
   const [gameOver, setGameOver] = useState(false)
@@ -73,12 +75,18 @@ const PongGame: React.FC<PongGameProps> = ({ onClose }) => {
 
     // Game loop
     const gameLoop = () => {
+      // Theme-aware colors
+      const bgColor = theme === 'win95' ? '#008080' : '#1a1410'
+      const lineColor = theme === 'win95' ? '#808080' : '#3d2f1f'
+      const paddleColor = theme === 'win95' ? '#000080' : '#d4a574'
+      const ballColor = theme === 'win95' ? '#ffffff' : '#d4a574'
+      
       // Clear canvas
-      ctx.fillStyle = '#1a1410'
+      ctx.fillStyle = bgColor
       ctx.fillRect(0, 0, state.canvas.width, state.canvas.height)
 
       // Draw center line
-      ctx.strokeStyle = '#3d2f1f'
+      ctx.strokeStyle = lineColor
       ctx.lineWidth = 2
       ctx.setLineDash([10, 10])
       ctx.beginPath()
@@ -161,14 +169,14 @@ const PongGame: React.FC<PongGameProps> = ({ onClose }) => {
       }
 
       // Draw paddles
-      ctx.fillStyle = '#d4a574'
+      ctx.fillStyle = paddleColor
       ctx.fillRect(state.paddle.x, state.paddle.y, state.paddle.width, state.paddle.height)
       ctx.fillRect(state.computer.x, state.computer.y, state.computer.width, state.computer.height)
 
       // Draw ball
+      ctx.fillStyle = ballColor
       ctx.beginPath()
       ctx.arc(state.ball.x, state.ball.y, state.ball.radius, 0, Math.PI * 2)
-      ctx.fillStyle = '#e8d5b7'
       ctx.fill()
 
       // Continue game loop
@@ -186,7 +194,7 @@ const PongGame: React.FC<PongGameProps> = ({ onClose }) => {
         cancelAnimationFrame(state.animationId)
       }
     }
-  }, [gameOver, onClose])
+  }, [gameOver, onClose, theme])
 
   // Dragging functionality
   useEffect(() => {

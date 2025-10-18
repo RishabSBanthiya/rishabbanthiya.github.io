@@ -1,0 +1,298 @@
+/* Theme Variables - Gas.zip inspired themes */
+
+/* Terminal Theme (Brown/Beige) - Default */
+:root[data-theme="terminal"],
+:root {
+  --bg-primary: #1a1410;
+  --bg-secondary: #2a1f17;
+  --bg-tertiary: #3d2f1f;
+  --bg-overlay: rgba(26, 20, 16, 0.98);
+  --bg-overlay-light: rgba(45, 35, 25, 0.3);
+  
+  --text-primary: #d4a574;
+  --text-secondary: #e8d5b7;
+  --text-tertiary: #b8a088;
+  --text-muted: #8b6f47;
+  --text-highlight: #c9a66b;
+  
+  --accent-primary: #d4a574;
+  --accent-success: #b8956a;
+  --accent-error: #c17a6a;
+  --accent-warning: #d4a574;
+  
+  --border-primary: #3d2f1f;
+  --border-secondary: #8b6f47;
+  
+  --button-close: #c17a6a;
+  --button-minimize: #d4a574;
+  --button-maximize: #b8956a;
+  
+  --shadow-sm: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 12px 48px rgba(0, 0, 0, 0.6);
+  
+  --scrollbar-thumb: #8b6f47;
+  --scrollbar-thumb-hover: #a0855b;
+}
+
+/* Win95 Theme - Retro Windows 95/98 */
+:root[data-theme="win95"] {
+  --bg-primary: #008080; /* Classic Win95 teal */
+  --bg-secondary: #c0c0c0;
+  --bg-tertiary: #dfdfdf;
+  --bg-overlay: rgba(192, 192, 192, 0.95);
+  --bg-overlay-light: rgba(223, 223, 223, 0.5);
+  
+  --text-primary: #000000;
+  --text-secondary: #000000;
+  --text-tertiary: #555555;
+  --text-muted: #808080;
+  --text-highlight: #0000ff;
+  
+  --accent-primary: #000080;
+  --accent-success: #008000;
+  --accent-error: #ff0000;
+  --accent-warning: #ffaa00;
+  
+  --border-primary: #808080;
+  --border-secondary: #ffffff;
+  
+  --button-close: #ff0000;
+  --button-minimize: #ffaa00;
+  --button-maximize: #00ff00;
+  
+  /* Windows 95 3D borders */
+  --border-light: #ffffff;
+  --border-dark: #808080;
+  --border-darker: #000000;
+  
+  --shadow-sm: 2px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 3px 3px 0 rgba(0, 0, 0, 0.4);
+  
+  --scrollbar-thumb: #c0c0c0;
+  --scrollbar-thumb-hover: #a0a0a0;
+  
+  /* Windows blue title bar */
+  --title-bar: #000080;
+  --title-bar-text: #ffffff;
+}
+
+/* Theme Toggle Button Styles */
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-secondary);
+  border-radius: 8px;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Courier New', 'Courier', monospace;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Win95 specific Windows 95 styling */
+:root[data-theme="win95"] .terminal-wrapper,
+:root[data-theme="win95"] .pong-game-container,
+:root[data-theme="win95"] .dino-game-container,
+:root[data-theme="win95"] .poker-game-modal,
+:root[data-theme="win95"] .bs-poker-game-modal {
+  border: 3px outset var(--border-light);
+  border-right-color: var(--border-dark);
+  border-bottom-color: var(--border-dark);
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
+  background: var(--bg-secondary);
+}
+
+:root[data-theme="win95"] .terminal-header,
+:root[data-theme="win95"] .pong-game-header,
+:root[data-theme="win95"] .dino-game-header,
+:root[data-theme="win95"] .poker-game-header,
+:root[data-theme="win95"] .bs-poker-game-header {
+  background: #000080;
+  border-bottom: 2px solid var(--border-dark);
+  padding: 4px 6px;
+}
+
+:root[data-theme="win95"] .terminal-title,
+:root[data-theme="win95"] .pong-game-header h2,
+:root[data-theme="win95"] .dino-game-header h2,
+:root[data-theme="win95"] .poker-game-title,
+:root[data-theme="win95"] .bs-poker-game-title {
+  color: var(--title-bar-text);
+  font-weight: bold;
+  font-family: 'MS Sans Serif', Arial, sans-serif;
+  font-size: 14px;
+}
+
+:root[data-theme="win95"] .terminal-container,
+:root[data-theme="win95"] .pong-game-content,
+:root[data-theme="win95"] .dino-game-content,
+:root[data-theme="win95"] .poker-game-content,
+:root[data-theme="win95"] .bs-poker-game-content {
+  background: #c0c0c0;
+  border: 2px inset var(--border-dark);
+  border-top-color: var(--border-darker);
+  border-left-color: var(--border-darker);
+  color: var(--text-primary);
+}
+
+/* Make terminal content area have grey background */
+:root[data-theme="win95"] .terminal-container {
+  background: #c0c0c0;
+  padding: 10px;
+}
+
+:root[data-theme="win95"] .terminal-content {
+  background: #c0c0c0;
+}
+
+:root[data-theme="win95"] .command-output,
+:root[data-theme="win95"] .output-line,
+:root[data-theme="win95"] .terminal-input-line {
+  color: #000000;
+}
+
+:root[data-theme="win95"] .terminal-link {
+  color: #0000ff;
+  text-decoration: underline;
+}
+
+:root[data-theme="win95"] .terminal-link:hover {
+  color: #0000cc;
+}
+
+:root[data-theme="win95"] .terminal-input {
+  background: #c0c0c0;
+  color: #000000;
+  border: none;
+}
+
+/* Windows 95 button style */
+:root[data-theme="win95"] button,
+:root[data-theme="win95"] .pong-close-btn,
+:root[data-theme="win95"] .dino-restart-btn,
+:root[data-theme="win95"] .dino-close-btn,
+:root[data-theme="win95"] .poker-action-btn,
+:root[data-theme="win95"] .bs-poker-action-btn {
+  background: var(--bg-secondary);
+  border: 2px outset var(--border-light);
+  border-right-color: var(--border-dark);
+  border-bottom-color: var(--border-dark);
+  box-shadow: none;
+  color: #000000;
+  font-family: 'MS Sans Serif', Arial, sans-serif;
+  padding: 4px 12px;
+}
+
+:root[data-theme="win95"] button:hover,
+:root[data-theme="win95"] .pong-close-btn:hover,
+:root[data-theme="win95"] .dino-restart-btn:hover,
+:root[data-theme="win95"] .dino-close-btn:hover {
+  background: var(--bg-tertiary);
+}
+
+:root[data-theme="win95"] button:active,
+:root[data-theme="win95"] .pong-close-btn:active,
+:root[data-theme="win95"] .dino-restart-btn:active,
+:root[data-theme="win95"] .dino-close-btn:active {
+  border: 2px inset var(--border-dark);
+  border-top-color: var(--border-darker);
+  border-left-color: var(--border-darker);
+  padding: 6px 10px 2px 14px; /* Simulate button being pressed */
+}
+
+/* Game canvas styling */
+:root[data-theme="win95"] canvas {
+  border: 2px inset var(--border-dark);
+  background: #ffffff;
+}
+
+/* Window control buttons */
+:root[data-theme="win95"] .window-controls button {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  min-width: 18px;
+  font-size: 12px;
+}
+
+/* Win95 Page Background */
+:root[data-theme="win95"] body,
+:root[data-theme="win95"] #root,
+:root[data-theme="win95"] .App {
+  background: #008080;
+}
+
+/* ASCII art styling for win95 */
+:root[data-theme="win95"] .ascii-art {
+  color: #000000;
+}
+
+/* Make prompt styling work in win95 */
+:root[data-theme="win95"] .terminal-prompt,
+:root[data-theme="win95"] .prompt-user {
+  color: #000000;
+}
+
+/* Success/Error messages */
+:root[data-theme="win95"] .success {
+  color: #008000;
+}
+
+:root[data-theme="win95"] .error {
+  color: #ff0000;
+}
+
+/* Poker CLI Win95 Theme */
+:root[data-theme="win95"] .poker-cli-container {
+  background: #c0c0c0;
+  color: #000000;
+}
+
+:root[data-theme="win95"] .poker-cli-output {
+  background: #c0c0c0;
+  color: #000000;
+}
+
+:root[data-theme="win95"] .poker-cli-input-line {
+  background: #c0c0c0;
+}
+
+:root[data-theme="win95"] .poker-cli-prompt {
+  color: #000080;
+  font-weight: bold;
+}
+
+:root[data-theme="win95"] .poker-cli-input {
+  color: #000000;
+  caret-color: #000080;
+}
+
+:root[data-theme="win95"] .poker-cli-input::placeholder {
+  color: #808080;
+  opacity: 0.6;
+}
+
+:root[data-theme="win95"] .poker-cli-output::-webkit-scrollbar-thumb {
+  background: #808080;
+}
+
+:root[data-theme="win95"] .poker-cli-output::-webkit-scrollbar-thumb:hover {
+  background: #606060;
+}
+
+/* Poker connecting state */
+:root[data-theme="win95"] .poker-connecting h3 {
+  color: #000080;
+}
+
+:root[data-theme="win95"] .poker-connecting p {
+  color: #000000;
+}
+

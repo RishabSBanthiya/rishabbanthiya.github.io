@@ -3,6 +3,7 @@ import PongGame from './PongGame'
 import DinoGame from './DinoGame'
 import { PokerGame } from './poker/PokerGame'
 import { BSPokerGame } from './bspoker/BSPokerGame'
+import { useTheme } from '../contexts/ThemeContext'
 
 interface CommandHistory {
   command: string
@@ -512,6 +513,7 @@ const parseCommand = (command: string) => {
 }
 
 const Terminal: React.FC = () => {
+  const { theme, setTheme } = useTheme()
   const [history, setHistory] = useState<CommandHistory[]>([])
   const [currentCommand, setCurrentCommand] = useState('')
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 })
@@ -528,7 +530,7 @@ const Terminal: React.FC = () => {
   const headerRef = useRef<HTMLDivElement>(null)
   const isNavigatingHistory = useRef<boolean>(false)
 
-  const commands: Record<string, () => React.ReactNode> = {
+  const commands: Record<string, (args?: string) => React.ReactNode> = {
     help: () => (
       <div className="command-output">
         <div className="help-section">
@@ -658,10 +660,44 @@ const Terminal: React.FC = () => {
               <span className="cmd-name">journalctl</span>
               <span className="cmd-desc">Show recent tweets from @ri_shrub</span>
             </div>
+            <div className="command-item">
+              <span className="cmd-name">theme &lt;name&gt;</span>
+              <span className="cmd-desc">Change theme (terminal, win95)</span>
+            </div>
           </div>
         </div>
       </div>
     ),
+
+    theme: (args?: string) => {
+      const themeName = args?.trim().toLowerCase()
+      
+      if (!themeName) {
+        return (
+          <div className="command-output">
+            <p className="output-line">Current theme: {theme}</p>
+            <p className="output-line">Available themes: terminal, win95</p>
+            <p className="output-line">Usage: theme &lt;name&gt;</p>
+          </div>
+        )
+      }
+      
+      if (themeName === 'terminal' || themeName === 'win95') {
+        setTheme(themeName as 'terminal' | 'win95')
+        return (
+          <div className="command-output">
+            <p className="output-line success">Theme changed to: {themeName}</p>
+          </div>
+        )
+      }
+      
+      return (
+        <div className="command-output">
+          <p className="output-line error">Unknown theme: {themeName}</p>
+          <p className="output-line">Available themes: terminal, win95</p>
+        </div>
+      )
+    },
 
     about: () => (
       <div className="command-output">
@@ -1324,7 +1360,7 @@ Feel free to reach out for:
 {`
 ██████╗ ██╗███████╗██╗  ██╗██████╗ ██╗   ██╗██████╗ ███████╗
 ██╔══██╗██║██╔════╝██║  ██║██╔══██╗██║   ██║██╔══██╗██╔════╝
-██████╔╝██║███████╗███████║██████╔╝██║   ██║██████╔╝███████╗
+██████╔╝██║███████╗███████║██████╔╝██║   ██║██████╔╝███████╗cre
 ██╔══██╗██║╚════██║██╔══██║██╔══██╗██║   ██║██╔══██╗╚════██║
 ██║  ██║██║███████║██║  ██║██║  ██║╚██████╔╝██████╔╝███████║
 ╚═╝  ╚═╝╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
@@ -1558,6 +1594,9 @@ Feel free to reach out for:
     } else if (baseCommand === 'grep') {
       const searchTerm = commandParts.slice(1).join(' ')
       output = handleGrepCommand(searchTerm)
+    } else if (baseCommand === 'theme') {
+      const themeName = commandParts.slice(1).join(' ')
+      output = commands.theme(themeName)
     } else if (commands[baseCommand]) {
       output = commands[baseCommand]()
     } else if (trimmedCommand.toLowerCase().startsWith('echo ')) {

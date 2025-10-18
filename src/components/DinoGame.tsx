@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { useTheme } from '../contexts/ThemeContext'
 
 interface DinoGameProps {
   onClose: () => void
@@ -10,6 +11,7 @@ interface Position {
 }
 
 const DinoGame: React.FC<DinoGameProps> = ({ onClose }) => {
+  const { theme } = useTheme()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [score, setScore] = useState(0)
   const [highScore, setHighScore] = useState(0)
@@ -98,12 +100,20 @@ const DinoGame: React.FC<DinoGameProps> = ({ onClose }) => {
     const gameLoop = () => {
       state.frameCount++
 
+      // Theme-aware colors
+      const bgColor = theme === 'win95' ? '#008080' : '#1a1410'
+      const groundColor = theme === 'win95' ? '#808080' : '#3d2f1f'
+      const dinoColor = theme === 'win95' ? '#000080' : '#d4a574'
+      const dinoEyeColor = theme === 'win95' ? '#ffffff' : '#1a1410'
+      const obstacleColor = theme === 'win95' ? '#ff0000' : '#c17a6a'
+      const textColor = theme === 'win95' ? '#000000' : '#d4a574'
+
       // Clear canvas
-      ctx.fillStyle = '#1a1410'
+      ctx.fillStyle = bgColor
       ctx.fillRect(0, 0, state.canvas.width, state.canvas.height)
 
       // Draw ground
-      ctx.strokeStyle = '#3d2f1f'
+      ctx.strokeStyle = groundColor
       ctx.lineWidth = 2
       ctx.beginPath()
       ctx.moveTo(0, state.ground.y)
@@ -136,11 +146,11 @@ const DinoGame: React.FC<DinoGameProps> = ({ onClose }) => {
       const dinoHeight = state.dino.ducking ? state.dino.height * 0.6 : state.dino.height
       const dinoY = state.dino.ducking ? state.ground.y - dinoHeight : state.dino.y
       
-      ctx.fillStyle = '#d4a574'
+      ctx.fillStyle = dinoColor
       ctx.fillRect(state.dino.x, dinoY, state.dino.width, dinoHeight)
       
       // Dino eye
-      ctx.fillStyle = '#1a1410'
+      ctx.fillStyle = dinoEyeColor
       ctx.fillRect(state.dino.x + 5, dinoY + 5, 5, 5)
 
       // Spawn obstacles periodically
@@ -162,7 +172,7 @@ const DinoGame: React.FC<DinoGameProps> = ({ onClose }) => {
         }
 
         // Draw obstacle
-        ctx.fillStyle = '#c17a6a'
+        ctx.fillStyle = obstacleColor
         if (obstacle.type === 'cactus') {
           // Draw cactus
           ctx.fillRect(obstacle.x, state.ground.y - obstacle.height, obstacle.width, obstacle.height)
@@ -214,7 +224,7 @@ const DinoGame: React.FC<DinoGameProps> = ({ onClose }) => {
       }
 
       // Draw score
-      ctx.fillStyle = '#d4a574'
+      ctx.fillStyle = textColor
       ctx.font = '16px "Courier New"'
       ctx.fillText(`Score: ${state.score}`, 10, 30)
       ctx.fillText(`High: ${highScore}`, 10, 50)
@@ -234,7 +244,7 @@ const DinoGame: React.FC<DinoGameProps> = ({ onClose }) => {
         cancelAnimationFrame(state.animationId)
       }
     }
-  }, [gameOver, highScore, onClose])
+  }, [gameOver, highScore, onClose, theme])
 
   const handleRestart = () => {
     setGameOver(false)
