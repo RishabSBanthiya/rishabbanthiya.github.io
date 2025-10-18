@@ -40,7 +40,11 @@ export const usePokerSocket = (): UsePokerSocketReturn => {
   // Initialize socket connection
   useEffect(() => {
     const newSocket = io(SOCKET_URL, {
-      transports: ['websocket', 'polling']
+      transports: ['polling', 'websocket'], // Try polling first
+      withCredentials: true,
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5
     })
 
     newSocket.on('connect', () => {

@@ -24,9 +24,16 @@ const httpServer = createServer(app)
 // Configure CORS for Socket.io
 const io = new Server(httpServer, {
   cors: {
-    origin: '*', // In production, specify your domain
-    methods: ['GET', 'POST']
-  }
+    origin: [
+      'https://rishabbanthiya.github.io',
+      'http://localhost:5173',
+      'http://localhost:3000'
+    ],
+    methods: ['GET', 'POST'],
+    credentials: true
+  },
+  transports: ['polling', 'websocket'], // Polling first for better compatibility
+  allowEIO3: true // Enable compatibility
 })
 
 // Middleware
