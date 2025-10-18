@@ -8,7 +8,10 @@ A modern TypeScript/React portfolio website built with Vite.
 - **React 18**: Latest React with hooks and functional components
 - **Vite**: Fast build tool and development server
 - **Bootstrap 5**: Responsive design framework
-- **Terminal Interface**: Interactive command-line interface with games
+- **Terminal Interface**: Interactive command-line interface with games and utilities
+  - **journalctl** 🐦: Fetch and display recent tweets from @ri_shrub
+  - Integrated games (Pong, Dino)
+  - AI assistant and system utilities
 - **Terminal Poker Room** 🃏: Real-time multiplayer poker games
   - **Texas Hold'em**: Classic poker with community cards (2-6 players)
   - **BS Poker (Liar's Poker)** 🎴: Bluffing game with wild 2s (2-8 players)
@@ -42,9 +45,9 @@ npm run dev
 
 This will start the development server at `http://localhost:5173`
 
-### 🃏 Running the Poker Server
+### 🃏 Running the Backend Server
 
-To use the Terminal Poker Room features:
+To use the Terminal Poker Room and Twitter integration features:
 
 ```bash
 # In a separate terminal
@@ -53,11 +56,29 @@ npm install  # First time only
 npm run dev  # Starts on port 3001
 ```
 
-Then in the portfolio terminal, type:
+#### Poker Games
+
+In the portfolio terminal, type:
 - `play poker` for Texas Hold'em
 - `play bspoker` for BS Poker (Liar's Poker)
 
 See [POKER_GUIDE.md](POKER_GUIDE.md) and [BS_POKER_GUIDE.md](BS_POKER_GUIDE.md) for complete instructions!
+
+#### Twitter Integration (journalctl)
+
+The `journalctl` command fetches recent tweets from @ri_shrub. To enable:
+
+1. **Optional**: Configure Twitter API for best results
+   - See [TWITTER_API_SETUP.md](TWITTER_API_SETUP.md) for detailed instructions
+   - Create `server/.env` and add your `TWITTER_BEARER_TOKEN`
+   
+2. **Automatic Fallback**: If no API key is configured, it uses RSS fallback
+
+**Usage:**
+```bash
+# In the portfolio terminal
+journalctl
+```
 
 ### Build for Production
 

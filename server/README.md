@@ -1,16 +1,18 @@
 # Terminal Poker Room - Server
 
-WebSocket-based multiplayer Texas Hold'em poker server built with Express and Socket.io.
+WebSocket-based multiplayer poker server with Twitter integration, built with Express and Socket.io.
 
 ## Features
 
-- 🎮 Real-time multiplayer poker games
+- 🎮 Real-time multiplayer poker games (Texas Hold'em & BS Poker)
 - 🏠 Private and public room system
 - 🔐 Password-protected rooms
 - 🃏 Full Texas Hold'em implementation
+- 🎴 BS Poker (Liar's Poker) with wild 2s
 - 🎯 Automatic hand evaluation
 - 💾 Session persistence
 - 🧹 Automatic room cleanup
+- 🐦 Twitter/X API integration for `journalctl` command
 
 ## Quick Start
 
@@ -41,6 +43,9 @@ npm start
 ### HTTP
 
 - `GET /health` - Health check endpoint
+- `GET /api/tweets/:username?count=10` - Fetch recent tweets (for `journalctl` command)
+  - Supports Twitter API v2 (with Bearer Token) or RSS fallback
+  - Returns JSON with tweet data
 
 ### WebSocket Events
 
@@ -85,9 +90,36 @@ server/
 
 ## Environment Variables
 
+Create a `.env` file in the server directory:
+
 ```env
-PORT=3001  # Server port (default: 3001)
+# Server Configuration
+PORT=3001
+
+# Twitter API Configuration (Optional)
+# Get your Bearer Token from: https://developer.twitter.com/en/portal/dashboard
+TWITTER_BEARER_TOKEN=your_twitter_bearer_token_here
 ```
+
+### Twitter API Setup (Optional)
+
+The `journalctl` command fetches tweets from @ri_shrub. For best results:
+
+1. **Get Twitter API Access**:
+   - Go to [Twitter Developer Portal](https://developer.twitter.com/en/portal/dashboard)
+   - Create a new app or use an existing one
+   - Generate a Bearer Token
+
+2. **Configure Environment**:
+   ```bash
+   # In server/.env
+   TWITTER_BEARER_TOKEN=your_actual_bearer_token_here
+   ```
+
+3. **Fallback**:
+   - If no Bearer Token is set, the server uses RSS2JSON service
+   - This may have rate limits or reliability issues
+   - Twitter profile link is always shown as fallback
 
 ## Game Rules
 

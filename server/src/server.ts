@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import express from 'express'
 import { createServer } from 'http'
 import { Server, Socket } from 'socket.io'
@@ -46,6 +47,81 @@ app.get('/health', (_req, res) => {
     bsPokerPlayers: bsRoomManager.getTotalPlayers(),
     uptime: process.uptime()
   })
+})
+
+// Twitter/X API endpoint
+app.get('/api/tweets/:username', async (req, res) => {
+  const { username } = req.params
+  const count = parseInt(req.query.count as string) || 10
+
+  try {
+    // Check if Twitter API credentials are configured
+    const bearerToken = process.env.TWITTER_BEARER_TOKEN
+
+    if (bearerToken) {
+      // Use Twitter API v2
+      const response = await fetch(
+        `https://api.twitter.com/2/users/by/username/${username}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${bearerToken}`
+          }
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error('Failed to get user ID')
+      }
+
+      const userData = await response.json() as { data: { id: string } }
+      const userId = userData.data.id
+
+      // Fetch tweets
+      const tweetsResponse = await fetch(
+        `https://api.twitter.com/2/users/${userId}/tweets?max_results=${Math.min(count, 100)}&tweet.fields=created_at,public_metrics`,
+        {
+          headers: {
+            'Authorization': `Bearer ${bearerToken}`
+          }
+        }
+      )
+
+      if (!tweetsResponse.ok) {
+        throw new Error('Failed to fetch tweets')
+      }
+
+      const tweetsData = await tweetsResponse.json() as { data?: Array<{ text: string; created_at: string }> }
+      
+      res.json({
+        success: true,
+        tweets: tweetsData.data || [],
+        source: 'twitter-api'
+      })
+    } else {
+      // No Twitter API configured - return helpful message
+      res.status(501).json({
+        success: false,
+        error: 'Twitter API not configured',
+        message: 'Please configure TWITTER_BEARER_TOKEN environment variable',
+        instructions: {
+          step1: 'Get a Bearer Token from https://developer.twitter.com/en/portal/dashboard',
+          step2: 'Create server/.env file',
+          step3: 'Add: TWITTER_BEARER_TOKEN=your_token_here',
+          step4: 'Restart the server'
+        },
+        note: 'See TWITTER_API_SETUP.md for detailed instructions'
+      })
+      return
+    }
+  } catch (error) {
+    console.error('Twitter API error:', error)
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch tweets',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      note: 'Set TWITTER_BEARER_TOKEN environment variable for Twitter API access'
+    })
+  }
 })
 
 // Socket.io connection handler
@@ -497,12 +573,17 @@ setInterval(() => {
 const PORT = process.env.PORT || 3001
 
 httpServer.listen(PORT, () => {
+  const twitterStatus = process.env.TWITTER_BEARER_TOKEN 
+    ? '✓ Twitter API configured' 
+    : '⚠ Using RSS fallback'
+    
   console.log(`
 ╔═══════════════════════════════════════╗
 ║   🃏  POKER SERVER ONLINE  🃏          ║
 ╠═══════════════════════════════════════╣
 ║  Port: ${PORT}                           ║
 ║  Games: Texas Hold'em & BS Poker      ║
+║  Twitter: ${twitterStatus}            ║
 ║  Status: Ready to deal cards          ║
 ╚═══════════════════════════════════════╝
   `)

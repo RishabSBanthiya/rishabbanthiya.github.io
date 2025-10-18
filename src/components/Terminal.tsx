@@ -89,21 +89,19 @@ Data from wttr.in ☕`
 // JournalCtl Display Component (Twitter/X Feed)
 const JournalCtlDisplay: React.FC = () => {
   const [loading, setLoading] = useState(true)
-  const [tweets, setTweets] = useState<Array<{text: string, date: string}>>([])
+  const [tweets, setTweets] = useState<Array<{text: string, created_at: string, url?: string}>>([])
   const [error, setError] = useState(false)
+  const [source, setSource] = useState<string>('')
+  const [errorData, setErrorData] = useState<any>(null)
 
   useEffect(() => {
-    // Attempt to fetch tweets from @ri_shrub
-    // Note: Twitter API requires authentication and has CORS restrictions
-    // For production, you'd need a backend proxy service
-    
+    // Fetch tweets from backend proxy
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 8000)
+    const timeoutId = setTimeout(() => controller.abort(), 10000)
 
-    // Try to fetch from a public Twitter proxy service
-    // Using RSS to JSON service as an example
     const username = 'ri_shrub'
-    const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=https://nitter.net/${username}/rss`
+    // Use backend API endpoint
+    const apiUrl = `http://localhost:3001/api/tweets/${username}?count=10`
     
     fetch(apiUrl, {
       signal: controller.signal
@@ -113,23 +111,28 @@ const JournalCtlDisplay: React.FC = () => {
         if (res.ok) {
           return res.json()
         }
-        throw new Error('Failed to fetch')
+        // Try to get error details from response
+        return res.json().then(errData => {
+          throw { status: res.status, data: errData }
+        }).catch(() => {
+          throw { status: res.status, data: null }
+        })
       })
       .then(data => {
-        if (data.items && data.items.length > 0) {
-          const tweetData = data.items.slice(0, 10).map((item: any) => ({
-            text: item.title || item.description?.replace(/<[^>]*>/g, '') || '',
-            date: new Date(item.pubDate).toLocaleString()
-          }))
-          setTweets(tweetData)
+        if (data.success && data.tweets && data.tweets.length > 0) {
+          setTweets(data.tweets)
+          setSource(data.source || 'unknown')
         } else {
           throw new Error('No tweets found')
         }
         setLoading(false)
       })
-      .catch(() => {
+      .catch((err) => {
         clearTimeout(timeoutId)
-        // Fallback: Show message with link to profile
+        console.error('Failed to fetch tweets:', err)
+        if (err.data) {
+          setErrorData(err.data)
+        }
         setError(true)
         setLoading(false)
       })
@@ -144,32 +147,77 @@ const JournalCtlDisplay: React.FC = () => {
   }
 
   if (error || tweets.length === 0) {
+    const isServerDown = !errorData
+    const isApiNotConfigured = errorData?.error === 'Twitter API not configured'
+    
     return (
       <div className="command-output">
         <p className="output-line"><strong>-- Logs from @ri_shrub --</strong></p>
         <p className="output-line"></p>
-        <p className="output-line">📱 Unable to fetch live tweets due to API restrictions.</p>
-        <p className="output-line"></p>
+        
+        {isServerDown && (
+          <>
+            <p className="output-line">📱 Unable to connect to backend server.</p>
+            <p className="output-line"></p>
+            <p className="output-line">💡 Make sure the server is running:</p>
+            <p className="output-line">   <code>cd server && npm run dev</code></p>
+            <p className="output-line"></p>
+          </>
+        )}
+        
+        {isApiNotConfigured && (
+          <>
+            <p className="output-line">🔑 Twitter API not configured</p>
+            <p className="output-line"></p>
+            <p className="output-line"><strong>Setup Instructions:</strong></p>
+            <p className="output-line">1️⃣  Get a Bearer Token from Twitter Developer Portal</p>
+            <p className="output-line">   <a href="https://developer.twitter.com/en/portal/dashboard" target="_blank" rel="noopener noreferrer" style={{color: '#1da1f2'}}>developer.twitter.com</a></p>
+            <p className="output-line"></p>
+            <p className="output-line">2️⃣  Create <code>server/.env</code> file</p>
+            <p className="output-line"></p>
+            <p className="output-line">3️⃣  Add your token:</p>
+            <p className="output-line">   <code>TWITTER_BEARER_TOKEN=your_token_here</code></p>
+            <p className="output-line"></p>
+            <p className="output-line">4️⃣  Restart the server</p>
+            <p className="output-line"></p>
+            <p className="output-line">📖 See <code>TWITTER_API_SETUP.md</code> for detailed instructions</p>
+            <p className="output-line"></p>
+          </>
+        )}
+        
+        {!isServerDown && !isApiNotConfigured && errorData && (
+          <>
+            <p className="output-line">❌ {errorData.message || 'Failed to fetch tweets'}</p>
+            <p className="output-line"></p>
+          </>
+        )}
+        
         <p className="output-line">🔗 View latest tweets directly:</p>
         <p className="output-line">   <a href="https://x.com/ri_shrub" target="_blank" rel="noopener noreferrer" style={{color: '#1da1f2', textDecoration: 'underline'}}>https://x.com/ri_shrub</a></p>
-        <p className="output-line"></p>
-        <p className="output-line">💡 To enable live tweet fetching, set up a backend proxy service</p>
-        <p className="output-line">   that handles Twitter API authentication and CORS.</p>
       </div>
     )
   }
 
   return (
     <div className="command-output">
-      <p className="output-line"><strong>-- Logs from @ri_shrub (Latest 10 tweets) --</strong></p>
+      <p className="output-line"><strong>-- Logs from @ri_shrub (Latest {tweets.length} tweets) --</strong></p>
+      <p className="output-line"><span style={{color: '#666', fontSize: '0.9em'}}>Source: {source}</span></p>
       <p className="output-line"></p>
-      {tweets.map((tweet, index) => (
-        <React.Fragment key={index}>
-          <p className="output-line"><span style={{color: '#555'}}>[{tweet.date}]</span></p>
-          <p className="output-line">→ {tweet.text}</p>
-          <p className="output-line"></p>
-        </React.Fragment>
-      ))}
+      {tweets.map((tweet, index) => {
+        const date = tweet.created_at ? new Date(tweet.created_at).toLocaleString() : 'Unknown date'
+        return (
+          <React.Fragment key={index}>
+            <p className="output-line"><span style={{color: '#555'}}>[{date}]</span></p>
+            <p className="output-line">→ {tweet.text}</p>
+            {tweet.url && (
+              <p className="output-line" style={{fontSize: '0.85em', color: '#666'}}>
+                🔗 <a href={tweet.url} target="_blank" rel="noopener noreferrer" style={{color: '#1da1f2'}}>View tweet</a>
+              </p>
+            )}
+            <p className="output-line"></p>
+          </React.Fragment>
+        )
+      })}
       <p className="output-line">────────────────────────────────────────</p>
       <p className="output-line">View more at: <a href="https://x.com/ri_shrub" target="_blank" rel="noopener noreferrer" style={{color: '#1da1f2'}}>@ri_shrub</a></p>
     </div>
