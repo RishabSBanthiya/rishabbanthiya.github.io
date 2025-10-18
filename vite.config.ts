@@ -10,5 +10,10 @@ export default defineConfig({
     assetsDir: 'assets',
     sourcemap: false,
     minify: 'esbuild'
+  },
+  define: {
+    'import.meta.env.VITE_POKER_SERVER_URL': JSON.stringify(
+      process.env.VITE_POKER_SERVER_URL || 'http://localhost:3001'
+    )
   }
 })

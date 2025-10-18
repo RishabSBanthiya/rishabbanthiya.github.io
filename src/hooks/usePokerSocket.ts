@@ -10,8 +10,9 @@ import {
   JoinRoomRequest
 } from '../types/poker.types'
 
-// Use environment variable for production, fallback to localhost for development
-const SOCKET_URL = import.meta.env.VITE_POKER_SERVER_URL || 'http://localhost:3001'
+// Production server URL - Change to 'http://localhost:3001' for local development
+const SOCKET_URL = 'https://rishabbanthiya-github-io.onrender.com'
+console.log('Poker Socket URL:', SOCKET_URL)
 
 interface UsePokerSocketReturn {
   socket: Socket | null
