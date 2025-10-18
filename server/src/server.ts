@@ -38,6 +38,10 @@ app.use(express.json())
 const roomManager = new RoomManager()
 const bsRoomManager = new BSRoomManager()
 
+// Twitter API cache
+const twitterCache = new Map<string, { data: any, timestamp: number }>()
+const CACHE_DURATION = 24 * 60 * 60 * 1000 // 24 hours (daily)
+
 // Health check endpoint
 app.get('/health', (_req, res) => {
   res.json({
@@ -56,148 +60,248 @@ app.get('/api/tweets/:username', async (req, res) => {
   const count = parseInt(req.query.count as string) || 10
 
   try {
+    // Check cache first - but only use cache if it has tweets
+    const cacheKey = `tweets_${username}_${count}`
+    const cached = twitterCache.get(cacheKey)
+    if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION && cached.data.length > 0) {
+      console.log(`📦 Returning cached tweets for @${username}`)
+      res.json({
+        success: true,
+        tweets: cached.data,
+        source: 'cache',
+        cached: true
+      })
+      return
+    }
+    
+    // If cache exists but has no tweets, clear it and try API again
+    if (cached && cached.data.length === 0) {
+      console.log(`🔄 Cache has no tweets, clearing and trying API again for @${username}`)
+      twitterCache.delete(cacheKey)
+    }
+
     // Check if Twitter API credentials are configured
-    const consumerKey = process.env.TWITTER_CONSUMER_KEY
-    const consumerSecret = process.env.TWITTER_CONSUMER_SECRET
-    const accessToken = process.env.TWITTER_ACCESS_TOKEN
-    const accessTokenSecret = process.env.TWITTER_ACCESS_TOKEN_SECRET
+    const bearerToken = process.env.TWITTER_BEARER_TOKEN
 
-    if (consumerKey && consumerSecret && accessToken && accessTokenSecret) {
-      console.log(`🔍 Attempting to fetch tweets for @${username} using OAuth 1.0a`)
+    if (bearerToken && bearerToken !== 'your_bearer_token_here' && bearerToken.length > 50) {
+      console.log(`🔍 Attempting to fetch tweets for @${username} using X API v2`)
+      console.log(`🔑 Token length: ${bearerToken.length}`)
       
-      // Set up OAuth 1.0a
-      const oauth = new OAuth({
-        consumer: { key: consumerKey, secret: consumerSecret },
-        signature_method: 'HMAC-SHA1',
-        hash_function: (baseString, key) => {
-          const crypto = require('crypto')
-          return crypto.createHmac('sha1', key).update(baseString).digest('base64')
+      // Use X API v2 - Get user ID first
+      const userResponse = await fetch(
+        `https://api.twitter.com/2/users/by/username/${username}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${bearerToken}`
+          }
         }
-      })
-
-      // Get user ID first
-      const userRequestData = {
-        url: `https://api.twitter.com/1.1/users/show.json?screen_name=${username}`,
-        method: 'GET'
-      }
-
-      const userAuthHeader = oauth.toHeader(oauth.authorize(userRequestData, {
-        key: accessToken,
-        secret: accessTokenSecret
-      }))
-
-      const userResponse = await fetch(userRequestData.url, {
-        headers: {
-          ...userAuthHeader,
-          'Content-Type': 'application/json'
-        }
-      })
+      )
 
       console.log(`📡 User lookup response status: ${userResponse.status}`)
       
       if (!userResponse.ok) {
         const errorText = await userResponse.text()
         console.log(`❌ Twitter API error: ${userResponse.status} - ${errorText}`)
+        console.log(`🔍 Full user lookup response:`, {
+          status: userResponse.status,
+          statusText: userResponse.statusText,
+          headers: Object.fromEntries(userResponse.headers.entries()),
+          body: errorText
+        })
         
-        // If 401 Unauthorized, the credentials are invalid
+        // If 401 Unauthorized, the token is invalid
         if (userResponse.status === 401) {
           res.status(401).json({
             success: false,
-            error: 'Invalid Twitter OAuth Credentials',
-            message: 'The provided OAuth credentials are invalid or expired',
+            error: 'Invalid Twitter Bearer Token',
+            message: 'The provided Bearer Token is invalid or expired',
             instructions: {
               step1: 'Go to https://developer.twitter.com/en/portal/dashboard',
               step2: 'Sign in with your @ri_shrub account',
-              step3: 'Create a new app or regenerate OAuth credentials',
-              step4: 'Ensure the app has "Read" permissions',
-              step5: 'Update server/.env with the new credentials'
+              step3: 'Create a new app or regenerate Bearer Token',
+              step4: 'Ensure the token has "Read" permissions',
+              step5: 'Update server/.env with the new token'
             },
-            note: 'Current OAuth credentials appear to be invalid or expired'
+            note: 'Current token appears to be invalid or expired'
+          })
+          return
+        }
+        
+        // If 403 Forbidden, access level issue
+        if (userResponse.status === 403) {
+          res.status(403).json({
+            success: false,
+            error: 'Twitter API Access Level Insufficient',
+            message: 'Your current access level does not support this endpoint',
+            instructions: {
+              step1: 'Go to https://developer.twitter.com/en/portal/products',
+              step2: 'Upgrade to Basic ($200/month) or Pro ($5000/month) access',
+              step3: 'Or use X API v2 endpoints which are available in Free tier',
+              step4: 'Check the X API documentation for supported endpoints'
+            },
+            note: 'Free tier has limited v1.1 endpoint access. Consider upgrading for full access.',
+            link: 'https://docs.x.com/x-api/getting-started/about-x-api'
           })
           return
         }
         
         // If 429 Too Many Requests, rate limit exceeded
         if (userResponse.status === 429) {
-          res.status(429).json({
-            success: false,
-            error: 'Twitter API Rate Limit Exceeded',
-            message: 'Too many requests to Twitter API. Please wait before trying again.',
-            instructions: {
-              step1: 'Wait 15-30 minutes for rate limit to reset',
-              step2: 'Consider upgrading to Twitter API Pro for higher limits',
-              step3: 'Or try again later when rate limit resets'
+          // Get rate limit reset time from headers
+          // Check both 15-minute and 24-hour rate limits
+          const rateLimitReset = userResponse.headers.get('x-rate-limit-reset')
+          const appLimitReset = userResponse.headers.get('x-app-limit-24hour-reset')
+          const appLimitRemaining = userResponse.headers.get('x-app-limit-24hour-remaining')
+          
+          // Use the 24-hour reset if we're out of daily requests, otherwise use 15-minute reset
+          const isAppLimitExceeded = appLimitRemaining === '0'
+          const resetTime = isAppLimitExceeded && appLimitReset ? appLimitReset : rateLimitReset
+          const resetTimestamp = resetTime ? parseInt(resetTime) * 1000 : null
+          const resetDate = resetTimestamp ? new Date(resetTimestamp) : null
+          
+          const limitType = isAppLimitExceeded ? '24-hour' : '15-minute'
+          
+          // Provide sample tweets as fallback during rate limit
+          const fallbackTweets = [
+            {
+              text: "am brown and listen to ice spice - friends call me a curry munch",
+              created_at: new Date('2023-03-30').toISOString(),
+              url: `https://x.com/${username}`
             },
-            note: 'Free tier has strict rate limits. Try again in a few minutes.',
-            retryAfter: 15 * 60 // 15 minutes in seconds
+            {
+              text: "itching to gamble my net worth someone give me a sign",
+              created_at: new Date('2024-10-16').toISOString(),
+              url: `https://x.com/${username}`
+            },
+            {
+              text: "just found out some people play catan without the knights? i'm beginning to see how \"woke\" is ruining this country",
+              created_at: new Date('2024-10-13').toISOString(),
+              url: `https://x.com/${username}`
+            },
+            {
+              text: "proof of stake, proof of work, proof of utility, proof of reach.. where is the proof of your bitches?",
+              created_at: new Date('2024-10-12').toISOString(),
+              url: `https://x.com/${username}`
+            }
+          ]
+          
+          res.status(200).json({
+            success: true,
+            tweets: fallbackTweets,
+            source: 'fallback-rate-limit',
+            rateLimitInfo: {
+              error: 'Rate Limit',
+              message: `rishab's twitter is acting up, try again later`,
+              resetTime: resetTimestamp,
+              resetDate: resetDate ? resetDate.toISOString() : null,
+              limitType: limitType
+            }
           })
           return
         }
         
-        throw new Error(`Failed to get user info: ${userResponse.status} - ${errorText}`)
+        throw new Error(`Failed to get user ID: ${userResponse.status} - ${errorText}`)
       }
 
-      const userData = await userResponse.json() as { id_str: string }
-      const userId = userData.id_str
-
-      // Fetch tweets using OAuth 1.0a
-      const tweetsRequestData = {
-        url: `https://api.twitter.com/1.1/statuses/user_timeline.json?user_id=${userId}&count=${Math.min(count, 200)}&tweet_mode=extended`,
-        method: 'GET'
+      const userData = await userResponse.json() as { data?: { id: string }, errors?: Array<any> }
+      console.log(`✅ User lookup successful:`, userData)
+      
+      // Check if user data exists
+      if (!userData.data || !userData.data.id) {
+        console.log(`❌ User not found or invalid response for @${username}`)
+        res.status(404).json({
+          success: false,
+          error: 'User not found',
+          message: `Twitter user @${username} not found`,
+          details: userData.errors || 'No user data returned from Twitter API'
+        })
+        return
       }
+      
+      const userId = userData.data.id
+      console.log(`🆔 User ID for @${username}: ${userId}`)
 
-      const tweetsAuthHeader = oauth.toHeader(oauth.authorize(tweetsRequestData, {
-        key: accessToken,
-        secret: accessTokenSecret
-      }))
-
-      const tweetsResponse = await fetch(tweetsRequestData.url, {
-        headers: {
-          ...tweetsAuthHeader,
-          'Content-Type': 'application/json'
+      // Fetch tweets using X API v2 (min 5, max 100)
+      const maxResults = Math.max(5, Math.min(count, 100))
+      const tweetsResponse = await fetch(
+        `https://api.twitter.com/2/users/${userId}/tweets?max_results=${maxResults}&tweet.fields=created_at,public_metrics`,
+        {
+          headers: {
+            'Authorization': `Bearer ${bearerToken}`
+          }
         }
-      })
+      )
 
       console.log(`📡 Tweets response status: ${tweetsResponse.status}`)
 
       if (!tweetsResponse.ok) {
         const errorText = await tweetsResponse.text()
         console.log(`❌ Twitter API error: ${tweetsResponse.status} - ${errorText}`)
+        console.log(`🔍 Full tweets response:`, {
+          status: tweetsResponse.status,
+          statusText: tweetsResponse.statusText,
+          headers: Object.fromEntries(tweetsResponse.headers.entries()),
+          body: errorText
+        })
         throw new Error(`Failed to fetch tweets: ${tweetsResponse.status} - ${errorText}`)
       }
 
-      const tweetsData = await tweetsResponse.json() as Array<{ 
-        full_text: string; 
-        created_at: string; 
-        id_str: string;
-        user: { screen_name: string }
-      }>
+      const tweetsData = await tweetsResponse.json() as { data?: Array<{ text: string; created_at: string; id: string }> }
+      console.log(`✅ Tweets fetch successful:`, {
+        tweetCount: tweetsData.data?.length || 0,
+        rawData: tweetsData
+      })
       
       // Transform tweets to match expected format
-      const tweets = tweetsData.map(tweet => ({
-        text: tweet.full_text,
+      const tweets = (tweetsData.data || []).map(tweet => ({
+        text: tweet.text,
         created_at: tweet.created_at,
-        url: `https://twitter.com/${tweet.user.screen_name}/status/${tweet.id_str}`
+        url: `https://twitter.com/${username}/status/${tweet.id}`
       }))
+      
+      console.log(`📝 Transformed tweets:`, tweets)
+      
+      // Only cache if there are tweets
+      if (tweets.length > 0) {
+        twitterCache.set(cacheKey, { data: tweets, timestamp: Date.now() })
+        console.log(`💾 Cached ${tweets.length} tweets for @${username}`)
+      } else {
+        console.log(`⚠️  No tweets to cache for @${username}`)
+      }
       
       res.json({
         success: true,
         tweets: tweets,
-        source: 'twitter-api-oauth'
+        source: 'twitter-api-v2'
       })
     } else {
-      // No Twitter API configured - return helpful message
-      res.status(501).json({
-        success: false,
-        error: 'Twitter API not configured',
-        message: 'Please configure Twitter OAuth credentials',
-        instructions: {
-          step1: 'Get OAuth credentials from https://developer.twitter.com/en/portal/dashboard',
-          step2: 'Create server/.env file',
-          step3: 'Add: TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_TOKEN_SECRET',
-          step4: 'Restart the server'
+      // No valid Twitter API configured - return helpful message with fallback data
+      console.log(`⚠️  No valid Twitter API token configured, returning fallback data for @${username}`)
+      
+      // Return some sample tweets as fallback
+      const fallbackTweets = [
+        {
+          text: `Welcome to @${username}'s Twitter feed! 🐦`,
+          created_at: new Date().toISOString(),
+          url: `https://x.com/${username}`
         },
-        note: 'See TWITTER_API_SETUP.md for detailed instructions'
+        {
+          text: "This is a demo tweet. To see real tweets, configure a valid Twitter Bearer Token.",
+          created_at: new Date(Date.now() - 3600000).toISOString(),
+          url: `https://x.com/${username}`
+        },
+        {
+          text: "Check out the setup guide in TWITTER_OAUTH_SETUP.md for OAuth 2.0 integration!",
+          created_at: new Date(Date.now() - 7200000).toISOString(),
+          url: `https://x.com/${username}`
+        }
+      ]
+      
+      res.json({
+        success: true,
+        tweets: fallbackTweets,
+        source: 'fallback-demo',
+        note: 'Configure TWITTER_BEARER_TOKEN for real tweets'
       })
       return
     }
@@ -207,7 +311,7 @@ app.get('/api/tweets/:username', async (req, res) => {
       success: false,
       error: 'Failed to fetch tweets',
       message: error instanceof Error ? error.message : 'Unknown error',
-      note: 'Set Twitter OAuth credentials for Twitter API access'
+      note: 'Set TWITTER_BEARER_TOKEN environment variable for Twitter API access'
     })
   }
 })
@@ -661,9 +765,9 @@ setInterval(() => {
 const PORT = process.env.PORT || 3001
 
 httpServer.listen(PORT, () => {
-  const twitterStatus = process.env.TWITTER_ACCESS_TOKEN 
+  const twitterStatus = process.env.TWITTER_BEARER_TOKEN 
     ? '✓ Twitter API configured' 
-    : '⚠ OAuth credentials needed'
+    : '⚠ Bearer token needed'
     
   console.log(`
 ╔═══════════════════════════════════════╗

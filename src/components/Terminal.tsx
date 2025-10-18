@@ -95,68 +95,77 @@ const JournalCtlDisplay: React.FC = () => {
   const [errorData, setErrorData] = useState<any>(null)
 
   useEffect(() => {
-    // Fetch tweets from backend proxy
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 10000)
+    const fetchTweets = async () => {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000)
 
-    const username = 'ri_shrub'
-    // Use backend API endpoint
-    const apiUrl = `http://localhost:3001/api/tweets/${username}?count=10`
-    
-    fetch(apiUrl, {
-      signal: controller.signal
-    })
-      .then(async res => {
+      try {
+        const username = 'ri_shrub'
+        // Use backend proxy API
+        const apiUrl = `http://localhost:3001/api/tweets/${username}?count=10`
+        
+        const response = await fetch(apiUrl, {
+          signal: controller.signal,
+          headers: {
+            'Accept': 'application/json'
+          }
+        })
+
         clearTimeout(timeoutId)
-        const responseText = await res.text()
+        const data = await response.json()
         
-        if (res.ok) {
-          return JSON.parse(responseText)
-        }
-        
-        // Try to parse error response as JSON
-        let errData
-        try {
-          errData = JSON.parse(responseText)
-        } catch (parseError) {
-          // If JSON parsing fails, create a generic error
-          errData = { message: `HTTP ${res.status} Error` }
-        }
-        throw { status: res.status, data: errData }
-      })
-      .then(data => {
-        if (data.success && data.tweets && data.tweets.length > 0) {
-          setTweets(data.tweets)
-          setSource(data.source || 'unknown')
+        if (response.ok && data.success) {
+          if (data.tweets && data.tweets.length > 0) {
+            setTweets(data.tweets)
+            setSource(data.source || 'backend')
+            // Check if this is a rate-limited fallback response
+            if (data.source === 'fallback-rate-limit' && data.rateLimitInfo) {
+              setErrorData(data.rateLimitInfo)
+            }
+          } else {
+            setTweets([])
+            setSource(data.source || 'backend')
+          }
+          setLoading(false)
         } else {
-          throw new Error('No tweets found')
+          // Handle error response - store full error data
+          console.log('Error response from API:', data)
+          setErrorData(data)
+          setError(true)
+          setLoading(false)
         }
-        setLoading(false)
-      })
-      .catch((err) => {
+      } catch (err: unknown) {
         clearTimeout(timeoutId)
         console.error('Failed to fetch tweets:', err)
-        if (err.data) {
-          setErrorData(err.data)
+        // Only set error data if we don't already have it from the response
+        if (!errorData) {
+          if (err && typeof err === 'object' && 'message' in err) {
+            setErrorData({ error: (err as Error).message })
+          }
         }
         setError(true)
         setLoading(false)
-      })
+      }
+    }
+
+    fetchTweets()
   }, [])
 
   if (loading) {
     return (
       <div className="command-output">
-        <p className="output-line">⏳ Fetching tweets from @ri_shrub...</p>
+        <p className="output-line">Fetching tweets from @ri_shrub...</p>
       </div>
     )
   }
+
+  // Check for rate limit info even if we have tweets (fallback scenario)
+  const isRateLimited = errorData?.error === 'Rate Limit'
 
   if (error || tweets.length === 0) {
     const isServerDown = !errorData
     const isApiNotConfigured = errorData?.error === 'Twitter API not configured'
     const isInvalidToken = errorData?.error === 'Invalid Twitter Bearer Token'
-    const isRateLimited = errorData?.error === 'Twitter API Rate Limit Exceeded'
     
     return (
       <div className="command-output">
@@ -165,81 +174,79 @@ const JournalCtlDisplay: React.FC = () => {
         
         {isServerDown && (
           <>
-            <p className="output-line">📱 Unable to connect to backend server.</p>
+            <p className="output-line">Unable to connect to Twitter API.</p>
             <p className="output-line"></p>
-            <p className="output-line">💡 Make sure the server is running:</p>
-            <p className="output-line">   <code>cd server && npm run dev</code></p>
+            <p className="output-line">Check your internet connection and try again.</p>
             <p className="output-line"></p>
           </>
         )}
         
         {isApiNotConfigured && (
           <>
-            <p className="output-line">🔑 Twitter API not configured</p>
+            <p className="output-line">Twitter API not configured</p>
             <p className="output-line"></p>
             <p className="output-line"><strong>Setup Instructions:</strong></p>
-            <p className="output-line">1️⃣  Get a Bearer Token from Twitter Developer Portal</p>
+            <p className="output-line">1. Get a Bearer Token from Twitter Developer Portal</p>
             <p className="output-line">   <a href="https://developer.twitter.com/en/portal/dashboard" target="_blank" rel="noopener noreferrer" style={{color: '#1da1f2'}}>developer.twitter.com</a></p>
             <p className="output-line"></p>
-            <p className="output-line">2️⃣  Create <code>server/.env</code> file</p>
+            <p className="output-line">2. Create <code>server/.env</code> file</p>
             <p className="output-line"></p>
-            <p className="output-line">3️⃣  Add your token:</p>
+            <p className="output-line">3. Add your token:</p>
             <p className="output-line">   <code>TWITTER_BEARER_TOKEN=your_token_here</code></p>
             <p className="output-line"></p>
-            <p className="output-line">4️⃣  Restart the server</p>
+            <p className="output-line">4. Restart the server</p>
             <p className="output-line"></p>
-            <p className="output-line">📖 See <code>TWITTER_API_SETUP.md</code> for detailed instructions</p>
+            <p className="output-line">See <code>TWITTER_API_SETUP.md</code> for detailed instructions</p>
             <p className="output-line"></p>
           </>
         )}
         
         {isInvalidToken && (
           <>
-            <p className="output-line">🔑 Invalid Twitter Bearer Token</p>
+            <p className="output-line">Invalid Twitter Bearer Token</p>
             <p className="output-line"></p>
             <p className="output-line"><strong>Fix Instructions:</strong></p>
-            <p className="output-line">1️⃣  Go to <a href="https://developer.twitter.com/en/portal/dashboard" target="_blank" rel="noopener noreferrer" style={{color: '#1da1f2'}}>Twitter Developer Portal</a></p>
+            <p className="output-line">1. Go to <a href="https://developer.twitter.com/en/portal/dashboard" target="_blank" rel="noopener noreferrer" style={{color: '#1da1f2'}}>Twitter Developer Portal</a></p>
             <p className="output-line"></p>
-            <p className="output-line">2️⃣  Sign in with your @ri_shrub account</p>
+            <p className="output-line">2. Sign in with your @ri_shrub account</p>
             <p className="output-line"></p>
-            <p className="output-line">3️⃣  Create a new app or regenerate Bearer Token</p>
+            <p className="output-line">3. Create a new app or regenerate Bearer Token</p>
             <p className="output-line"></p>
-            <p className="output-line">4️⃣  Ensure the token has "Read" permissions</p>
+            <p className="output-line">4. Ensure the token has "Read" permissions</p>
             <p className="output-line"></p>
-            <p className="output-line">5️⃣  Update <code>server/.env</code> with the new token</p>
+            <p className="output-line">5. Update <code>server/.env</code> with the new token</p>
             <p className="output-line"></p>
-            <p className="output-line">6️⃣  Restart the server</p>
+            <p className="output-line">6. Restart the server</p>
             <p className="output-line"></p>
-            <p className="output-line">⚠️  Current token appears to be invalid or expired</p>
+            <p className="output-line">Current token appears to be invalid or expired</p>
             <p className="output-line"></p>
           </>
         )}
         
         {isRateLimited && (
           <>
-            <p className="output-line">⏰ Twitter API Rate Limit Exceeded</p>
-            <p className="output-line"></p>
-            <p className="output-line"><strong>What happened:</strong></p>
-            <p className="output-line">Too many requests to Twitter API during testing.</p>
-            <p className="output-line"></p>
-            <p className="output-line"><strong>Solutions:</strong></p>
-            <p className="output-line">1️⃣  Wait 15-30 minutes for rate limit to reset</p>
-            <p className="output-line">2️⃣  Consider upgrading to Twitter API Pro for higher limits</p>
-            <p className="output-line">3️⃣  Try again later when rate limit resets</p>
-            <p className="output-line"></p>
-            <p className="output-line">💡 Free tier has strict rate limits. This is normal during development.</p>
+            <p className="output-line">{errorData?.message || "rishab's twitter is acting up, try again later"}</p>
+            {errorData?.resetTime ? (
+              <p className="output-line">
+                Try again after: {new Date(errorData.resetTime).toLocaleString()}
+              </p>
+            ) : errorData?.resetDate ? (
+              <p className="output-line">
+                Try again after: {new Date(errorData.resetDate).toLocaleString()}
+              </p>
+            ) : null}
             <p className="output-line"></p>
           </>
         )}
         
         {!isServerDown && !isApiNotConfigured && !isInvalidToken && !isRateLimited && errorData && (
           <>
-            <p className="output-line">❌ {errorData.message || 'Failed to fetch tweets'}</p>
+            <p className="output-line">{errorData.message || 'Failed to fetch tweets'}</p>
             <p className="output-line"></p>
           </>
         )}
         
-        <p className="output-line">🔗 View latest tweets directly:</p>
+        <p className="output-line">View latest tweets directly:</p>
         <p className="output-line">   <a href="https://x.com/ri_shrub" target="_blank" rel="noopener noreferrer" style={{color: '#1da1f2', textDecoration: 'underline'}}>https://x.com/ri_shrub</a></p>
       </div>
     )
@@ -249,7 +256,11 @@ const JournalCtlDisplay: React.FC = () => {
     <div className="command-output">
       <p className="output-line"><strong>-- Logs from @ri_shrub (Latest {tweets.length} tweets) --</strong></p>
       <p className="output-line"><span style={{color: '#666', fontSize: '0.9em'}}>Source: {source}</span></p>
+      {isRateLimited && errorData?.resetTime && (
+        <p className="output-line"><span style={{color: '#666', fontSize: '0.9em'}}>Last updated: {new Date(errorData.resetTime - 86400000).toLocaleString()}</span></p>
+      )}
       <p className="output-line"></p>
+      
       {tweets.map((tweet, index) => {
         const date = tweet.created_at ? new Date(tweet.created_at).toLocaleString() : 'Unknown date'
         return (
