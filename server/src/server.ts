@@ -3,7 +3,6 @@ import express from 'express'
 import { createServer } from 'http'
 import { Server, Socket } from 'socket.io'
 import cors from 'cors'
-import OAuth from 'oauth-1.0a'
 import { RoomManager } from './game/RoomManager'
 import {
   CreateRoomRequest,
