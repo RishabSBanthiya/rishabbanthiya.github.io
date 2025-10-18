@@ -48,6 +48,20 @@ const bsRoomManager = new BSRoomManager()
 const twitterCache = new Map<string, { data: any, timestamp: number }>()
 const CACHE_DURATION = 24 * 60 * 60 * 1000 // 24 hours (daily)
 
+// Root endpoint - welcome message
+app.get('/', (_req, res) => {
+  res.json({
+    message: '🃏 Poker Server is running!',
+    endpoints: {
+      health: '/health',
+      tweets: '/api/tweets/:username',
+      socketio: 'Socket.IO connected on same port'
+    },
+    games: ['Texas Hold\'em Poker', 'BS Poker (Liar\'s Poker)'],
+    status: 'online'
+  })
+})
+
 // Health check endpoint
 app.get('/health', (_req, res) => {
   res.json({
