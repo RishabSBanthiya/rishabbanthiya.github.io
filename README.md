@@ -2,7 +2,7 @@
 
 A modern TypeScript/React portfolio website built with Vite.
 
-## 🚀 Features
+## Features
 
 - **TypeScript**: Full type safety and modern JavaScript features
 - **React 18**: Latest React with hooks and functional components
