@@ -106,17 +106,23 @@ const JournalCtlDisplay: React.FC = () => {
     fetch(apiUrl, {
       signal: controller.signal
     })
-      .then(res => {
+      .then(async res => {
         clearTimeout(timeoutId)
+        const responseText = await res.text()
+        
         if (res.ok) {
-          return res.json()
+          return JSON.parse(responseText)
         }
-        // Try to get error details from response
-        return res.json().then(errData => {
-          throw { status: res.status, data: errData }
-        }).catch(() => {
-          throw { status: res.status, data: null }
-        })
+        
+        // Try to parse error response as JSON
+        let errData
+        try {
+          errData = JSON.parse(responseText)
+        } catch (parseError) {
+          // If JSON parsing fails, create a generic error
+          errData = { message: `HTTP ${res.status} Error` }
+        }
+        throw { status: res.status, data: errData }
       })
       .then(data => {
         if (data.success && data.tweets && data.tweets.length > 0) {
@@ -149,6 +155,8 @@ const JournalCtlDisplay: React.FC = () => {
   if (error || tweets.length === 0) {
     const isServerDown = !errorData
     const isApiNotConfigured = errorData?.error === 'Twitter API not configured'
+    const isInvalidToken = errorData?.error === 'Invalid Twitter Bearer Token'
+    const isRateLimited = errorData?.error === 'Twitter API Rate Limit Exceeded'
     
     return (
       <div className="command-output">
@@ -185,7 +193,46 @@ const JournalCtlDisplay: React.FC = () => {
           </>
         )}
         
-        {!isServerDown && !isApiNotConfigured && errorData && (
+        {isInvalidToken && (
+          <>
+            <p className="output-line">🔑 Invalid Twitter Bearer Token</p>
+            <p className="output-line"></p>
+            <p className="output-line"><strong>Fix Instructions:</strong></p>
+            <p className="output-line">1️⃣  Go to <a href="https://developer.twitter.com/en/portal/dashboard" target="_blank" rel="noopener noreferrer" style={{color: '#1da1f2'}}>Twitter Developer Portal</a></p>
+            <p className="output-line"></p>
+            <p className="output-line">2️⃣  Sign in with your @ri_shrub account</p>
+            <p className="output-line"></p>
+            <p className="output-line">3️⃣  Create a new app or regenerate Bearer Token</p>
+            <p className="output-line"></p>
+            <p className="output-line">4️⃣  Ensure the token has "Read" permissions</p>
+            <p className="output-line"></p>
+            <p className="output-line">5️⃣  Update <code>server/.env</code> with the new token</p>
+            <p className="output-line"></p>
+            <p className="output-line">6️⃣  Restart the server</p>
+            <p className="output-line"></p>
+            <p className="output-line">⚠️  Current token appears to be invalid or expired</p>
+            <p className="output-line"></p>
+          </>
+        )}
+        
+        {isRateLimited && (
+          <>
+            <p className="output-line">⏰ Twitter API Rate Limit Exceeded</p>
+            <p className="output-line"></p>
+            <p className="output-line"><strong>What happened:</strong></p>
+            <p className="output-line">Too many requests to Twitter API during testing.</p>
+            <p className="output-line"></p>
+            <p className="output-line"><strong>Solutions:</strong></p>
+            <p className="output-line">1️⃣  Wait 15-30 minutes for rate limit to reset</p>
+            <p className="output-line">2️⃣  Consider upgrading to Twitter API Pro for higher limits</p>
+            <p className="output-line">3️⃣  Try again later when rate limit resets</p>
+            <p className="output-line"></p>
+            <p className="output-line">💡 Free tier has strict rate limits. This is normal during development.</p>
+            <p className="output-line"></p>
+          </>
+        )}
+        
+        {!isServerDown && !isApiNotConfigured && !isInvalidToken && !isRateLimited && errorData && (
           <>
             <p className="output-line">❌ {errorData.message || 'Failed to fetch tweets'}</p>
             <p className="output-line"></p>
