@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { BSGameState, BSPokerAction, BSRoundResult, Card, HandGuess, Rank } from '../../types/bspoker.types'
 
 interface BSPokerTableProps {
@@ -25,8 +25,6 @@ const HAND_TYPES = [
   { value: 'straight-flush', label: 'Straight Flush' }
 ]
 
-const RANKS: Rank[] = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
-
 export const BSPokerTable: React.FC<BSPokerTableProps> = ({
   gameState,
   myPlayerId,
@@ -38,8 +36,6 @@ export const BSPokerTable: React.FC<BSPokerTableProps> = ({
   roomName,
   roomId
 }) => {
-  const [selectedHandType, setSelectedHandType] = useState('pair')
-  const [selectedRank, setSelectedRank] = useState<Rank>('K')
 
   if (!gameState) {
     // Waiting for game to start
@@ -53,7 +49,7 @@ export const BSPokerTable: React.FC<BSPokerTableProps> = ({
 ║  Room: ${roomName.padEnd(56)}║
 ║  ID:   ${roomId.padEnd(56)}║
 ║                                                               ║
-║  Players: ${gameState?.players.length || 0}                                                     ║
+║  Players: 0                                                   ║
 ║                                                               ║
 ║  Waiting for game to start...                                ║
 ║                                                               ║
@@ -140,19 +136,6 @@ export const BSPokerTable: React.FC<BSPokerTableProps> = ({
     
     output += '╚═══════════════════════════════════════════════════════════════╝\n'
     return output
-  }
-
-  const handleMakeGuess = () => {
-    const handType = HAND_TYPES.find(h => h.value === selectedHandType)
-    if (!handType) return
-
-    const guess: HandGuess = {
-      type: selectedHandType as HandGuess['type'],
-      rank: selectedRank,
-      description: `${handType.label}${selectedRank ? ' of ' + selectedRank + 's' : ''}`
-    }
-
-    onAction({ type: 'guess', guess })
   }
 
   const handleCallBullshit = () => {

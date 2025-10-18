@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { GameState, PokerAction, Player, Winner, Card } from '../../types/poker.types'
+import { GameState, PokerAction, Winner, Card } from '../../types/poker.types'
 
 interface PokerTableProps {
   gameState: GameState | null
