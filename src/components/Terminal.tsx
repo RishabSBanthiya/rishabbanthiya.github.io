@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
 import PongGame from './PongGame'
 import DinoGame from './DinoGame'
+import { PokerGame } from './poker/PokerGame'
+import { BSPokerGame } from './bspoker/BSPokerGame'
 
 interface CommandHistory {
   command: string
@@ -319,7 +321,7 @@ const Terminal: React.FC = () => {
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const [dragOffset, setDragOffset] = useState<Position>({ x: 0, y: 0 })
-  const [activeGame, setActiveGame] = useState<'pong' | 'dino' | null>(null)
+  const [activeGame, setActiveGame] = useState<'pong' | 'dino' | 'poker' | 'bspoker' | null>(null)
   const [commandHistory, setCommandHistory] = useState<string[]>([])
   const [historyIndex, setHistoryIndex] = useState<number>(-1)
   const [currentDirectory, setCurrentDirectory] = useState('~')
@@ -362,7 +364,7 @@ const Terminal: React.FC = () => {
             </div>
             <div className="command-item">
               <span className="cmd-name">play [game]</span>
-              <span className="cmd-desc">Play a game of Pong or Dino!</span>
+              <span className="cmd-desc">Play Pong, Dino, Poker, or BS Poker!</span>
             </div>
             <div className="command-item">
               <span className="cmd-name">ssh &lt;url&gt;</span>
@@ -808,7 +810,7 @@ const Terminal: React.FC = () => {
     // Autocomplete game for play command
     if (parts.length === 2 && baseCommand === 'play') {
       const partial = parts[1]
-      const games = ['pong', 'dino']
+      const games = ['pong', 'dino', 'poker']
       const matches = games.filter(game => game.startsWith(partial))
       if (matches.length === 1 && matches[0] !== partial) {
         return `play ${matches[0]}`
@@ -1241,11 +1243,27 @@ Feel free to reach out for:
             <p className="output-line success">Loading Dino Game...</p>
           </div>
         )
+      } else if (game === 'poker') {
+        setActiveGame('poker')
+        output = (
+          <div className="command-output">
+            <p className="output-line success">🃏 Loading Terminal Poker Room...</p>
+            <p className="output-line">Starting WebSocket connection...</p>
+          </div>
+        )
+      } else if (game === 'bspoker') {
+        setActiveGame('bspoker')
+        output = (
+          <div className="command-output">
+            <p className="output-line success">🎴 Loading BS Poker (Liar's Poker)...</p>
+            <p className="output-line">Starting WebSocket connection...</p>
+          </div>
+        )
       } else {
         output = (
           <div className="command-output">
             <p className="output-line error">Unknown game: {game || 'none'}</p>
-            <p className="output-line">Available games: pong, dino</p>
+            <p className="output-line">Available games: pong, dino, poker, bspoker</p>
           </div>
         )
       }
@@ -1364,6 +1382,7 @@ Feel free to reach out for:
   }
 
   return (
+    <>
     <div 
       className={`terminal-wrapper ${isDragging ? 'dragging' : ''}`}
       style={{
@@ -1436,13 +1455,12 @@ Feel free to reach out for:
           </form>
         </div>
       </div>
-      {activeGame && (
-        <div className="terminal-overlay">
-          {activeGame === 'pong' && <PongGame onClose={() => setActiveGame(null)} />}
-          {activeGame === 'dino' && <DinoGame onClose={() => setActiveGame(null)} />}
-        </div>
-      )}
     </div>
+    {activeGame === 'poker' && <PokerGame onClose={() => setActiveGame(null)} />}
+    {activeGame === 'bspoker' && <BSPokerGame onClose={() => setActiveGame(null)} />}
+    {activeGame === 'pong' && <PongGame onClose={() => setActiveGame(null)} />}
+    {activeGame === 'dino' && <DinoGame onClose={() => setActiveGame(null)} />}
+    </>
   )
 }
 

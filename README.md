@@ -8,7 +8,17 @@ A modern TypeScript/React portfolio website built with Vite.
 - **React 18**: Latest React with hooks and functional components
 - **Vite**: Fast build tool and development server
 - **Bootstrap 5**: Responsive design framework
-- **FontAwesome**: Icon library
+- **Terminal Interface**: Interactive command-line interface with games
+- **Terminal Poker Room** 🃏: Real-time multiplayer poker games
+  - **Texas Hold'em**: Classic poker with community cards (2-6 players)
+  - **BS Poker (Liar's Poker)** 🎴: Bluffing game with wild 2s (2-8 players)
+    - Standard Texas Hold'em hands only
+    - Guess what hands exist combining all players' cards
+    - Call "bullshit" to challenge guesses
+  - WebSocket-based multiplayer (Socket.io)
+  - Private and public rooms
+  - Session persistence
+  - Full poker hand evaluation with wild card support
 - **ESLint**: Code linting and formatting
 
 ## 🛠️ Development
@@ -31,6 +41,23 @@ npm run dev
 ```
 
 This will start the development server at `http://localhost:5173`
+
+### 🃏 Running the Poker Server
+
+To use the Terminal Poker Room features:
+
+```bash
+# In a separate terminal
+cd server
+npm install  # First time only
+npm run dev  # Starts on port 3001
+```
+
+Then in the portfolio terminal, type:
+- `play poker` for Texas Hold'em
+- `play bspoker` for BS Poker (Liar's Poker)
+
+See [POKER_GUIDE.md](POKER_GUIDE.md) and [BS_POKER_GUIDE.md](BS_POKER_GUIDE.md) for complete instructions!
 
 ### Build for Production
 
@@ -58,13 +85,38 @@ npm run type-check
 src/
 ├── components/          # React components
 │   ├── Navbar.tsx      # Navigation component
-│   └── Hero.tsx        # Hero section component
+│   ├── Hero.tsx        # Hero section component
+│   ├── Terminal.tsx    # Terminal interface
+│   ├── PongGame.tsx    # Pong game
+│   ├── DinoGame.tsx    # Dino game
+│   └── poker/          # Poker game components
+│       ├── PokerGame.tsx      # Main poker wrapper
+│       ├── PokerLobby.tsx     # Room creation/joining
+│       └── PokerTable.tsx     # Game table UI
+├── hooks/              # Custom React hooks
+│   └── usePokerSocket.ts     # WebSocket management
+├── types/              # TypeScript types
+│   └── poker.types.ts        # Poker game types
 ├── styles/             # CSS styles
 │   ├── index.css       # Global styles
-│   └── App.css         # App-specific styles
+│   ├── App.css         # App-specific styles
+│   └── poker.css       # Poker game styles
 ├── assets/             # Static assets
 ├── App.tsx             # Main App component
 └── main.tsx            # Entry point
+
+server/                 # Poker server (WebSocket)
+├── src/
+│   ├── game/          # Game logic
+│   │   ├── PokerRoom.ts      # Individual game
+│   │   └── RoomManager.ts    # Multi-room manager
+│   ├── utils/         # Utilities
+│   │   ├── deckManager.ts    # Card handling
+│   │   └── handEvaluator.ts  # Hand ranking
+│   ├── types/         # TypeScript types
+│   └── server.ts      # Main server & Socket.io
+├── package.json
+└── tsconfig.json
 ```
 
 ## 🚀 Deployment

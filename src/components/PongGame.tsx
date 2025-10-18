@@ -4,10 +4,20 @@ interface PongGameProps {
   onClose: () => void
 }
 
+interface Position {
+  x: number
+  y: number
+}
+
 const PongGame: React.FC<PongGameProps> = ({ onClose }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [score, setScore] = useState(0)
   const [gameOver, setGameOver] = useState(false)
+  const [position, setPosition] = useState<Position>({ x: 100, y: 100 })
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragOffset, setDragOffset] = useState<Position>({ x: 0, y: 0 })
+  const headerRef = useRef<HTMLDivElement>(null)
+  
   const gameStateRef = useRef({
     paddle: { x: 0, y: 0, width: 10, height: 60, speed: 8 },
     ball: { x: 0, y: 0, dx: 3, dy: 3, radius: 6 },
@@ -178,27 +188,82 @@ const PongGame: React.FC<PongGameProps> = ({ onClose }) => {
     }
   }, [gameOver, onClose])
 
+  // Dragging functionality
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        setPosition({
+          x: e.clientX - dragOffset.x,
+          y: e.clientY - dragOffset.y,
+        })
+      }
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+    }
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isDragging, dragOffset])
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (headerRef.current && headerRef.current.contains(e.target as Node)) {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+      setDragOffset({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      })
+      setIsDragging(true)
+    }
+  }
+
   return (
-    <div className="pong-game">
-      <div className="pong-header">
-        <span className="pong-score">Score: {score}</span>
-        <span className="pong-controls">Use ↑/↓ or W/S to move | ESC to quit</span>
-      </div>
-      <canvas
-        ref={canvasRef}
-        width={600}
-        height={400}
-        className="pong-canvas"
-      />
-      {gameOver && (
-        <div className="pong-game-over">
-          <p className="game-over-text">Game Over!</p>
-          <p className="final-score">Final Score: {score}</p>
-          <button onClick={onClose} className="pong-close-btn">
-            Close (or press ESC)
-          </button>
+    <div className="pong-game-overlay">
+      <div 
+        className={`pong-game-container ${isDragging ? 'dragging' : ''}`}
+        style={{
+          transform: `translate(${position.x}px, ${position.y}px)`,
+        }}
+        onMouseDown={handleMouseDown}
+      >
+        <div className="pong-game-header" ref={headerRef}>
+          <div className="pong-terminal-buttons">
+            <span className="pong-terminal-button close" onClick={onClose}></span>
+            <span className="pong-terminal-button minimize"></span>
+            <span className="pong-terminal-button maximize"></span>
+          </div>
+          <h2>pong@terminal:~$</h2>
         </div>
-      )}
+        <div className="pong-game-content">
+          <div className="pong-info-bar">
+            <span className="pong-score">Score: {score}</span>
+            <span className="pong-controls">↑/↓ or W/S to move | ESC to quit</span>
+          </div>
+          <canvas
+            ref={canvasRef}
+            width={600}
+            height={400}
+            className="pong-canvas"
+          />
+          {gameOver && (
+            <div className="pong-game-over">
+              <p className="game-over-text">Game Over!</p>
+              <p className="final-score">Final Score: {score}</p>
+              <button onClick={onClose} className="pong-close-btn">
+                Close (or press ESC)
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

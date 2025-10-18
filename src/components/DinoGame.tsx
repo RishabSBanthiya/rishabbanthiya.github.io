@@ -4,11 +4,21 @@ interface DinoGameProps {
   onClose: () => void
 }
 
+interface Position {
+  x: number
+  y: number
+}
+
 const DinoGame: React.FC<DinoGameProps> = ({ onClose }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [score, setScore] = useState(0)
   const [highScore, setHighScore] = useState(0)
   const [gameOver, setGameOver] = useState(false)
+  const [position, setPosition] = useState<Position>({ x: 150, y: 150 })
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragOffset, setDragOffset] = useState<Position>({ x: 0, y: 0 })
+  const headerRef = useRef<HTMLDivElement>(null)
+  
   const gameStateRef = useRef({
     dino: { 
       x: 50, 
@@ -236,35 +246,90 @@ const DinoGame: React.FC<DinoGameProps> = ({ onClose }) => {
     state.frameCount = 0
   }
 
+  // Dragging functionality
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        setPosition({
+          x: e.clientX - dragOffset.x,
+          y: e.clientY - dragOffset.y,
+        })
+      }
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+    }
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isDragging, dragOffset])
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (headerRef.current && headerRef.current.contains(e.target as Node)) {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+      setDragOffset({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      })
+      setIsDragging(true)
+    }
+  }
+
   return (
-    <div className="dino-game">
-      <div className="dino-header">
-        <span className="dino-title">Chrome Dino Game</span>
-        <span className="dino-controls">SPACE or ↑ to jump | ↓ to duck | ESC to quit</span>
-      </div>
-      <canvas
-        ref={canvasRef}
-        width={800}
-        height={400}
-        className="dino-canvas"
-      />
-      {gameOver && (
-        <div className="dino-game-over">
-          <p className="game-over-text">Game Over!</p>
-          <p className="final-score">Score: {score}</p>
-          {score > 0 && score === highScore && (
-            <p className="new-high-score">New High Score! 🎉</p>
-          )}
-          <div className="dino-buttons">
-            <button onClick={handleRestart} className="dino-restart-btn">
-              Restart
-            </button>
-            <button onClick={onClose} className="dino-close-btn">
-              Close (ESC)
-            </button>
+    <div className="dino-game-overlay">
+      <div 
+        className={`dino-game-container ${isDragging ? 'dragging' : ''}`}
+        style={{
+          transform: `translate(${position.x}px, ${position.y}px)`,
+        }}
+        onMouseDown={handleMouseDown}
+      >
+        <div className="dino-game-header" ref={headerRef}>
+          <div className="dino-terminal-buttons">
+            <span className="dino-terminal-button close" onClick={onClose}></span>
+            <span className="dino-terminal-button minimize"></span>
+            <span className="dino-terminal-button maximize"></span>
           </div>
+          <h2>dino@terminal:~$</h2>
         </div>
-      )}
+        <div className="dino-game-content">
+          <div className="dino-info-bar">
+            <span className="dino-scores">Score: {score} | High: {highScore}</span>
+            <span className="dino-controls">SPACE/↑ jump | ↓ duck | ESC quit</span>
+          </div>
+          <canvas
+            ref={canvasRef}
+            width={800}
+            height={400}
+            className="dino-canvas"
+          />
+          {gameOver && (
+            <div className="dino-game-over">
+              <p className="game-over-text">Game Over!</p>
+              <p className="final-score">Score: {score}</p>
+              {score > 0 && score === highScore && (
+                <p className="new-high-score">New High Score! 🎉</p>
+              )}
+              <div className="dino-buttons">
+                <button onClick={handleRestart} className="dino-restart-btn">
+                  Restart
+                </button>
+                <button onClick={onClose} className="dino-close-btn">
+                  Close (ESC)
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
