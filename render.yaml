@@ -5,7 +5,7 @@ services:
     runtime: node
     region: oregon
     plan: free
-    rootDir: server
+    rootDir: ./server
     buildCommand: npm install && npm run build
     startCommand: npm start
     healthCheckPath: /health
