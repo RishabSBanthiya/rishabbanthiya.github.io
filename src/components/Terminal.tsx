@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import PongGame from './PongGame'
 import DinoGame from './DinoGame'
 import { PokerGame } from './poker/PokerGame'
@@ -440,7 +440,6 @@ const parseCommand = (command: string) => {
 
 const Terminal: React.FC = () => {
   const { theme, setTheme } = useTheme()
-  const { slug } = useParams<{ slug?: string }>()
   const navigate = useNavigate()
   
   const [isLoading, setIsLoading] = useState(true)
@@ -1644,41 +1643,12 @@ Feel free to reach out for:
     return () => clearTimeout(timer)
   }, [])
 
-  // Handle URL-based blog post opening
+  // Initialize terminal with welcome message
   useEffect(() => {
     if (!isLoading) {
-      if (slug) {
-        const post = getPostBySlug(slug)
-        if (post) {
-          setCurrentBlogPost(post)
-          // Add a command to history showing the blog post was opened via URL
-          setHistory([{ 
-            command: '', 
-            output: (
-              <div className="command-output">
-                <p className="output-line success">📝 Opening blog post from URL: {post.title}</p>
-                <p className="output-line">Blog window opened. Click on the window to interact with it.</p>
-              </div>
-            )
-          }])
-        } else {
-          // Post not found, show error and redirect to blog list
-          setHistory([{ 
-            command: '', 
-            output: (
-              <div className="command-output">
-                <p className="output-line error">Blog post not found: {slug}</p>
-                <p className="output-line">Redirecting to blog list...</p>
-              </div>
-            )
-          }])
-          setTimeout(() => navigate('/blog'), 2000)
-        }
-      } else {
-        setHistory([{ command: '', output: welcomeMessage() }])
-      }
+      setHistory([{ command: '', output: welcomeMessage() }])
     }
-  }, [slug, navigate, isLoading])
+  }, [isLoading])
 
   useEffect(() => {
     // Global arrow key listener for debugging
