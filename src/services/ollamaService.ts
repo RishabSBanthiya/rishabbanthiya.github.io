@@ -1,4 +1,8 @@
-const OLLAMA_API_URL = 'http://localhost:11434/api/generate';
+// Detect if we're in production or development
+const isProduction = import.meta.env.PROD;
+const OLLAMA_API_URL = isProduction 
+  ? '/api/generate'  // Use relative URL in production (nginx proxy)
+  : 'http://localhost:11434/api/generate';  // Direct connection in development
 const MODEL_NAME = 'rishab-bot';
 
 interface OllamaResponse {
@@ -83,7 +87,8 @@ export async function* queryOllamaStream(
 // Check if Ollama is running
 export async function checkOllamaStatus(): Promise<boolean> {
   try {
-    const response = await fetch('http://localhost:11434/api/tags', {
+    const apiUrl = isProduction ? '/api/tags' : 'http://localhost:11434/api/tags';
+    const response = await fetch(apiUrl, {
       method: 'GET',
     });
     return response.ok;
@@ -95,7 +100,8 @@ export async function checkOllamaStatus(): Promise<boolean> {
 // Check if custom model exists
 export async function checkCustomModel(): Promise<boolean> {
   try {
-    const response = await fetch('http://localhost:11434/api/tags');
+    const apiUrl = isProduction ? '/api/tags' : 'http://localhost:11434/api/tags';
+    const response = await fetch(apiUrl);
     const data = await response.json();
     const models = data.models?.map((m: any) => m.name) || [];
     return models.some((name: string) => name.startsWith('rishab-bot'));
@@ -107,7 +113,8 @@ export async function checkCustomModel(): Promise<boolean> {
 // Get available models
 export async function getAvailableModels(): Promise<string[]> {
   try {
-    const response = await fetch('http://localhost:11434/api/tags');
+    const apiUrl = isProduction ? '/api/tags' : 'http://localhost:11434/api/tags';
+    const response = await fetch(apiUrl);
     const data = await response.json();
     return data.models?.map((m: any) => m.name) || [];
   } catch {

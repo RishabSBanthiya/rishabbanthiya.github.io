@@ -1,4 +1,17 @@
 services:
+  # Portfolio with Ollama AI
+  - type: web
+    name: rishab-portfolio-ai
+    runtime: docker
+    region: oregon
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+    autoDeploy: true
+
   # Backend Poker Server
   - type: web
     name: poker-server
