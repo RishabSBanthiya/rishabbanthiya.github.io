@@ -1,0 +1,10 @@
+# Ollama generated files
+# Add these lines to your .gitignore
+
+# Generated Modelfile (can be regenerated with npm run build:ollama)
+ollama-models/*.Modelfile
+
+# Optional: Keep the directory structure
+!ollama-models/.gitkeep
+
+

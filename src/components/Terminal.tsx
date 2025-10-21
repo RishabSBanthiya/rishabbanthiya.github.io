@@ -1,9 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import PongGame from './PongGame'
 import DinoGame from './DinoGame'
 import { PokerGame } from './poker/PokerGame'
 import { BSPokerGame } from './bspoker/BSPokerGame'
+import BlogPost from './BlogPost'
 import { useTheme } from '../contexts/ThemeContext'
+import { queryOllamaStream, checkOllamaStatus, checkCustomModel } from '../services/ollamaService'
+import { processFallbackAIQuery } from '../services/fallbackAI'
+import { 
+  getAllPosts, 
+  getPostBySlug, 
+  getRecentPosts, 
+  getAllTags, 
+  searchPosts,
+  getPostCount,
+  getTagCount
+} from '../content/blog'
+import { BlogPost as BlogPostType } from '../types/blog.types'
 
 interface CommandHistory {
   command: string
@@ -284,6 +298,9 @@ const JournalCtlDisplay: React.FC = () => {
 }
 
 // AI Agent Knowledge Base
+// Note: This is used by the Ollama build script (scripts/buildOllamaModel.ts)
+// to generate the custom AI model. Update this to change the AI's knowledge.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const aiKnowledgeBase = {
   personal: {
     name: "Rishab Banthiya",
@@ -328,178 +345,87 @@ const aiKnowledgeBase = {
   }
 }
 
-// AI Agent Response Component
-const AIAgentResponse: React.FC<{ response: string }> = ({ response }) => {
+// AI Agent Response Component (Ollama-powered with fallback)
+const AIAgentResponse: React.FC<{ query: string }> = ({ query }) => {
   const [displayedText, setDisplayedText] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
+  const [usedFallback, setUsedFallback] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
 
   useEffect(() => {
-    if (currentIndex < response.length) {
+    const fetchResponse = async () => {
+      try {
+        setIsLoading(true)
+        setUsedFallback(false)
+        
+        // Try Ollama first
+        const isRunning = await checkOllamaStatus()
+        
+        if (isRunning) {
+          // Check if custom model exists
+          const hasCustomModel = await checkCustomModel()
+          
+          if (hasCustomModel) {
+            // Use Ollama - stream response
+            try {
+              for await (const chunk of queryOllamaStream(query)) {
+                setDisplayedText(prev => prev + chunk)
+              }
+              setIsLoading(false)
+              return
+            } catch (ollamaError) {
+              console.warn('Ollama streaming failed, falling back to pattern matching:', ollamaError)
+            }
+          }
+        }
+        
+        // Fallback to pattern matching AI (for production or when Ollama unavailable)
+        console.log('Using fallback AI (pattern matching)')
+        setUsedFallback(true)
+        const fallbackResponse = processFallbackAIQuery(query, aiKnowledgeBase)
+        setDisplayedText(fallbackResponse)
+        setIsLoading(false)
+      } catch (err) {
+        console.error('AI Error:', err)
+        // Use fallback even on error
+        setUsedFallback(true)
+        const fallbackResponse = processFallbackAIQuery(query, aiKnowledgeBase)
+        setDisplayedText(fallbackResponse)
+        setIsLoading(false)
+      }
+    }
+
+    fetchResponse()
+  }, [query])
+
+  // Typing effect for fallback mode (to simulate streaming)
+  useEffect(() => {
+    if (usedFallback && !isLoading && currentIndex < displayedText.length) {
       const timer = setTimeout(() => {
-        setDisplayedText(prev => prev + response[currentIndex])
         setCurrentIndex(prev => prev + 1)
-      }, 20) // Typing speed
+      }, 15) // Fast typing speed
       return () => clearTimeout(timer)
     }
-  }, [currentIndex, response])
+  }, [currentIndex, displayedText, isLoading, usedFallback])
+
+  const displayText = usedFallback ? displayedText.substring(0, currentIndex) : displayedText
+  const showCursor = isLoading || (usedFallback && currentIndex < displayedText.length)
 
   return (
     <div className="command-output">
       <div className="ai-agent-response">
         <div className="ai-prompt">
-          <span className="ai-name">shrub's bot:</span>
+          <span className="ai-name">
+            shrub's bot{usedFallback ? ' (smart mode)' : ' (powered by Ollama)'}:
+          </span>
         </div>
         <div className="ai-content">
-          <pre>{displayedText}</pre>
-          {currentIndex < response.length && <span className="typing-cursor">|</span>}
+          <pre style={{ whiteSpace: 'pre-wrap' }}>{displayText}</pre>
+          {showCursor && <span className="typing-cursor">|</span>}
         </div>
       </div>
     </div>
   )
-}
-
-// AI Agent Logic
-const processAIQuery = (query: string): string => {
-  const lowerQuery = query.toLowerCase()
-  
-  // Greeting patterns
-  if (lowerQuery.match(/\b(hi|hello|hey|greetings|good morning|good afternoon|good evening)\b/)) {
-    return `Hello! I'm shrub's bot. I can help you learn about Rishab's background, skills, projects, and experience. What would you like to know?`
-  }
-  
-  // About/Who is Rishab
-  if (lowerQuery.match(/\b(who|about|tell me about|introduce|background)\b/)) {
-    return `Rishab Banthiya is a passionate Full Stack Developer based in the United States. He's a builder and explorer of technology and business, with a strong interest in innovation and problem-solving. 
-
-Currently open to exciting opportunities, Rishab enjoys working on challenging projects that make a real impact. He has experience building scalable web applications and working with modern tech stacks.
-
-You can learn more by asking about his skills, experience, projects, or contact information!`
-  }
-  
-  // Skills queries
-  if (lowerQuery.match(/\b(skills|technologies|tech stack|programming|coding|languages)\b/)) {
-    return `Rishab's technical skills include:
-
-Languages: ${aiKnowledgeBase.skills.languages.join(', ')}
-Frontend: ${aiKnowledgeBase.skills.frontend.join(', ')}
-Backend: ${aiKnowledgeBase.skills.backend.join(', ')}
-Databases: ${aiKnowledgeBase.skills.databases.join(', ')}
-Cloud & Tools: ${aiKnowledgeBase.skills.cloud.join(', ')}
-Currently Learning: ${aiKnowledgeBase.skills.learning.join(', ')}
-
-He's particularly strong in React, TypeScript, Node.js, and modern web development practices.`
-  }
-  
-  // Experience queries
-  if (lowerQuery.match(/\b(experience|work|job|career|background|resume)\b/)) {
-    return `Rishab's professional experience:
-
-${aiKnowledgeBase.experience.current}
-   - Building scalable web applications
-   - Working with modern tech stack
-   - Leading development initiatives
-
-${aiKnowledgeBase.experience.previous}
-   - Developed features for production applications
-   - Collaborated with cross-functional teams
-   - Implemented CI/CD pipelines
-
-${aiKnowledgeBase.experience.education}
-   - Computer Science fundamentals
-   - Building projects and contributing to open source
-
-He's currently open to new opportunities and exciting challenges!`
-  }
-  
-  // Projects queries
-  if (lowerQuery.match(/\b(projects|portfolio|work|built|created|developed)\b/)) {
-    return `Rishab has worked on various projects including:
-
-This Interactive Portfolio
-   - Built with React, TypeScript, and Vite
-   - Features terminal interface with games
-   - Responsive design with Bootstrap
-
-Terminal Games
-   - Pong game with physics simulation
-   - Dino game inspired by Chrome's offline game
-   - Built using HTML5 Canvas and TypeScript
-
-Other Projects
-   - Full-stack web applications
-   - API development and integration
-   - UI/UX design and implementation
-   - Open source contributions
-
-Check out his GitHub (github.com/rishabSBanthiya) for more projects!`
-  }
-  
-  // Contact queries
-  if (lowerQuery.match(/\b(contact|email|reach|get in touch|linkedin|github|social)\b/)) {
-    return `You can reach Rishab through:
-
-Email: banthiya.rishab1511@gmail.com
-LinkedIn: linkedin.com/in/rishrub
-GitHub: github.com/rishabSBanthiya
-
-He's interested in:
-- Job opportunities
-- Collaborations
-- Open source projects
-- Tech discussions
-
-Feel free to reach out - he's always excited to connect with fellow developers!`
-  }
-  
-  // Availability/Status queries
-  if (lowerQuery.match(/\b(available|status|hiring|looking|opportunities|job search)\b/)) {
-    return `Rishab is currently:
-
-- Open to opportunities
-- Available for collaborations
-- Looking for challenging projects
-- Interested in full-stack development roles
-- Excited about innovation and growth
-
-He's particularly interested in roles that involve:
-- Modern web technologies
-- Team collaboration
-- Problem-solving challenges
-- Continuous learning opportunities
-
-Feel free to reach out if you have an opportunity that matches!`
-  }
-  
-  // What can you do queries
-  if (lowerQuery.match(/\b(what can you do|help|commands|capabilities|assist)\b/)) {
-    return `I can help you learn about Rishab! I can answer questions about:
-
-- Personal background and interests
-- Technical skills and technologies
-- Professional experience and career
-- Projects and portfolio work
-- Contact information and availability
-- This terminal's features and games
-
-Just ask me anything like:
-- "Tell me about Rishab's skills"
-- "What projects has he worked on?"
-- "How can I contact him?"
-- "What technologies does he use?"
-
-What would you like to know?`
-  }
-  
-  // Default response
-  return `I'm not sure I understand that question about Rishab. I can help you learn about:
-
-- His background and experience
-- Technical skills and technologies  
-- Projects and portfolio work
-- Contact information
-- Availability and opportunities
-
-Try asking something like "What are Rishab's skills?" or "Tell me about his experience" and I'll be happy to help!`
 }
 
 // Helper function to parse command flags
@@ -514,12 +440,17 @@ const parseCommand = (command: string) => {
 
 const Terminal: React.FC = () => {
   const { theme, setTheme } = useTheme()
+  const { slug } = useParams<{ slug?: string }>()
+  const navigate = useNavigate()
+  
+  const [isLoading, setIsLoading] = useState(true)
   const [history, setHistory] = useState<CommandHistory[]>([])
   const [currentCommand, setCurrentCommand] = useState('')
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const [dragOffset, setDragOffset] = useState<Position>({ x: 0, y: 0 })
   const [activeGame, setActiveGame] = useState<'pong' | 'dino' | 'poker' | 'bspoker' | null>(null)
+  const [currentBlogPost, setCurrentBlogPost] = useState<BlogPostType | null>(null)
   const [commandHistory, setCommandHistory] = useState<string[]>([])
   const [historyIndex, setHistoryIndex] = useState<number>(-1)
   const [currentDirectory, setCurrentDirectory] = useState('~')
@@ -529,6 +460,49 @@ const Terminal: React.FC = () => {
   const terminalRef = useRef<HTMLDivElement>(null)
   const headerRef = useRef<HTMLDivElement>(null)
   const isNavigatingHistory = useRef<boolean>(false)
+
+  // ASCII Loading Animation Component
+  const LoadingAnimation: React.FC = () => {
+    const [frame, setFrame] = useState(0)
+    
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setFrame(prev => (prev + 1) % 4)
+      }, 200)
+      return () => clearInterval(interval)
+    }, [])
+    
+    const frames = [
+      '⠋ Loading portfolio...',
+      '⠙ Loading portfolio...',
+      '⠹ Loading portfolio...',
+      '⠸ Loading portfolio...'
+    ]
+    
+    return (
+      <div className="loading-container">
+        <div className="loading-content">
+          <pre className="loading-ascii">
+{`
+██████╗ ██╗███████╗██╗  ██╗██████╗ ██╗   ██╗██████╗ ███████╗
+██╔══██╗██║██╔════╝██║  ██║██╔══██╗██║   ██║██╔══██╗██╔════╝
+██████╔╝██║███████╗███████║██████╔╝██║   ██║██████╔╝███████╗
+██╔══██╗██║╚════██║██╔══██║██╔══██╗██║   ██║██╔══██╗╚════██║
+██║  ██║██║███████║██║  ██║██║  ██║╚██████╔╝██████╔╝███████║
+╚═╝  ╚═╝╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
+`}
+          </pre>
+          <div className="loading-spinner">
+            {frames[frame]}
+          </div>
+          <div className="loading-text">
+            <p>Initializing terminal interface...</p>
+            <p>Loading interactive features...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const commands: Record<string, (args?: string) => React.ReactNode> = {
     help: () => (
@@ -664,6 +638,10 @@ const Terminal: React.FC = () => {
               <span className="cmd-name">theme &lt;name&gt;</span>
               <span className="cmd-desc">Change theme (terminal, win95)</span>
             </div>
+            <div className="command-item">
+              <span className="cmd-name">blog</span>
+              <span className="cmd-desc">Access the blog system (use --help for options)</span>
+            </div>
           </div>
         </div>
       </div>
@@ -760,7 +738,7 @@ const Terminal: React.FC = () => {
 
     ls: () => (
       <div className="command-output">
-        <p className="output-line">about.txt  resume.pdf  projects/  contact.txt</p>
+        <p className="output-line">about.txt  resume.pdf  projects/  contact.txt  blog/</p>
       </div>
     ),
 
@@ -823,11 +801,12 @@ const Terminal: React.FC = () => {
             <p className="output-line">- "How can I contact him?"</p>
             <p className="output-line"></p>
             <p className="output-line">Usage: ai &lt;your question&gt;</p>
+            <p className="output-line"></p>
+            <p className="output-line">💡 Powered by Ollama - your data, running locally!</p>
           </div>
         )
       }
-      const response = processAIQuery(query)
-      return <AIAgentResponse response={response} />
+      return <AIAgentResponse query={query} />
     },
 
     // NEW SYSTEM COMMANDS
@@ -971,6 +950,289 @@ const Terminal: React.FC = () => {
         <p className="output-line">2025 ──► Open to new opportunities 🚀</p>
       </div>
     ),
+
+    blog: (args?: string) => {
+      const { flags, params } = parseCommand(`blog ${args || ''}`)
+      
+      // Handle flags
+      if (flags.includes('--help') || flags.includes('-h')) {
+        return (
+          <div className="command-output">
+            <p className="output-line success">📝 Blog System Help</p>
+            <p className="output-line">────────────────────────────────────────</p>
+            <p className="output-line">Usage: blog [OPTIONS] [ARGUMENTS]</p>
+            <p className="output-line"></p>
+            <p className="output-line"><strong>Options:</strong></p>
+            <p className="output-line">  -h, --help     Show this help message</p>
+            <p className="output-line">  -l, --list     List all blog posts</p>
+            <p className="output-line">  -r, --read     Read a specific post</p>
+            <p className="output-line">  -s, --search   Search posts</p>
+            <p className="output-line">  -t, --tags     Show all available tags</p>
+            <p className="output-line">  -n, --recent   Show recent posts</p>
+            <p className="output-line"></p>
+            <p className="output-line"><strong>Examples:</strong></p>
+            <p className="output-line">  blog                    # List all posts</p>
+            <p className="output-line">  blog --list             # List all posts</p>
+            <p className="output-line">  blog --read welcome-to-my-blog</p>
+            <p className="output-line">  blog --search react</p>
+            <p className="output-line">  blog --tags</p>
+            <p className="output-line">  blog --recent</p>
+            <p className="output-line"></p>
+            <p className="output-line"><strong>Short forms:</strong></p>
+            <p className="output-line">  blog -r welcome-to-my-blog</p>
+            <p className="output-line">  blog -s typescript</p>
+            <p className="output-line">  blog -t</p>
+            <p className="output-line">  blog -n</p>
+          </div>
+        )
+      }
+      
+      // Default behavior: list posts
+      if (flags.length === 0 && params.length === 0) {
+        const posts = getAllPosts()
+        return (
+          <div className="command-output blog-list">
+            <p className="output-line success">📝 Blog Posts ({getPostCount()} total)</p>
+            <p className="output-line">────────────────────────────────────────</p>
+            {posts.length === 0 ? (
+              <p className="output-line">No blog posts available yet.</p>
+            ) : (
+              posts.map((post, index) => (
+                <div key={index} className="blog-list-item">
+                  <div>
+                    <div 
+                      className="blog-list-title"
+                      onClick={() => {
+                        const fullPost = getPostBySlug(post.slug)
+                        if (fullPost) {
+                          setCurrentBlogPost(fullPost)
+                          navigate(`/blog/${post.slug}`)
+                        }
+                      }}
+                    >
+                      {post.title}
+                    </div>
+                    <div className="blog-list-meta">
+                      <span className="blog-date">{new Date(post.date).toLocaleDateString()}</span>
+                      <span className="blog-read-time">{post.readTime} min read</span>
+                    </div>
+                    <div className="blog-list-tags">
+                      {post.tags.map((tag, tagIndex) => (
+                        <span key={tagIndex} className="blog-list-tag">#{tag}</span>
+                      ))}
+                    </div>
+                    <p className="blog-list-description">{post.description}</p>
+                  </div>
+                </div>
+              ))
+            )}
+            <p className="output-line">────────────────────────────────────────</p>
+            <p className="output-line">Type 'blog --help' for more options</p>
+            <p className="output-line">Type 'blog --read &lt;slug&gt;' to read a specific post</p>
+          </div>
+        )
+      }
+      
+      // Handle --list flag
+      if (flags.includes('--list') || flags.includes('-l')) {
+        const posts = getAllPosts()
+        return (
+          <div className="command-output blog-list">
+            <p className="output-line success">📝 Blog Posts ({getPostCount()} total)</p>
+            <p className="output-line">────────────────────────────────────────</p>
+            {posts.length === 0 ? (
+              <p className="output-line">No blog posts available yet.</p>
+            ) : (
+              posts.map((post, index) => (
+                <div key={index} className="blog-list-item">
+                  <div>
+                    <div 
+                      className="blog-list-title"
+                      onClick={() => {
+                        const fullPost = getPostBySlug(post.slug)
+                        if (fullPost) {
+                          setCurrentBlogPost(fullPost)
+                          navigate(`/blog/${post.slug}`)
+                        }
+                      }}
+                    >
+                      {post.title}
+                    </div>
+                    <div className="blog-list-meta">
+                      <span className="blog-date">{new Date(post.date).toLocaleDateString()}</span>
+                      <span className="blog-read-time">{post.readTime} min read</span>
+                    </div>
+                    <div className="blog-list-tags">
+                      {post.tags.map((tag, tagIndex) => (
+                        <span key={tagIndex} className="blog-list-tag">#{tag}</span>
+                      ))}
+                    </div>
+                    <p className="blog-list-description">{post.description}</p>
+                  </div>
+                </div>
+              ))
+            )}
+            <p className="output-line">────────────────────────────────────────</p>
+          </div>
+        )
+      }
+      
+      // Handle --read flag
+      if (flags.includes('--read') || flags.includes('-r')) {
+        const slug = params[0]?.trim()
+        
+        if (!slug) {
+          return (
+            <div className="command-output">
+              <p className="output-line error">Please provide a post slug</p>
+              <p className="output-line">Usage: blog --read &lt;slug&gt;</p>
+              <p className="output-line">Example: blog --read welcome-to-my-blog</p>
+            </div>
+          )
+        }
+        
+        const post = getPostBySlug(slug)
+        
+        if (!post) {
+          return (
+            <div className="command-output">
+              <p className="output-line error">Post not found: {slug}</p>
+              <p className="output-line">Type 'blog --list' to see available posts</p>
+            </div>
+          )
+        }
+        
+        setCurrentBlogPost(post)
+        navigate(`/blog/${slug}`)
+        return (
+          <div className="command-output">
+            <p className="output-line success">📝 Opening blog post: {post.title}</p>
+            <p className="output-line">Blog window opened. Click on the window to interact with it.</p>
+            <p className="output-line">Direct link: <a href={`/blog/${slug}`} target="_blank" rel="noopener noreferrer" style={{color: 'var(--accent-primary)'}}>{window.location.origin}/blog/{slug}</a></p>
+          </div>
+        )
+      }
+      
+      // Handle --search flag
+      if (flags.includes('--search') || flags.includes('-s')) {
+        const query = params.join(' ').trim()
+        
+        if (!query) {
+          return (
+            <div className="command-output">
+              <p className="output-line error">Please provide a search term</p>
+              <p className="output-line">Usage: blog --search &lt;term&gt;</p>
+              <p className="output-line">Example: blog --search react</p>
+            </div>
+          )
+        }
+        
+        const results = searchPosts(query)
+        return (
+          <div className="command-output blog-search-results">
+            <p className="output-line success">🔍 Search results for "{query}" ({results.length} found)</p>
+            <p className="output-line">────────────────────────────────────────</p>
+            {results.length === 0 ? (
+              <p className="output-line">No posts found matching your search.</p>
+            ) : (
+              results.map((result, index) => (
+                <div key={index} className="blog-search-result">
+                  <div 
+                    className="blog-list-title"
+                    onClick={() => {
+                      const fullPost = getPostBySlug(result.post.slug)
+                      if (fullPost) {
+                        setCurrentBlogPost(fullPost)
+                        navigate(`/blog/${result.post.slug}`)
+                      }
+                    }}
+                  >
+                    {result.post.title}
+                  </div>
+                  <div className="blog-list-meta">
+                    <span className="blog-date">{new Date(result.post.date).toLocaleDateString()}</span>
+                    <span className="blog-read-time">{result.post.readTime} min read</span>
+                    <span className="blog-search-match">Match: {result.matchType}</span>
+                  </div>
+                  <p className="blog-list-description">
+                    {result.matchText.length > 100 
+                      ? result.matchText.substring(0, 100) + '...' 
+                      : result.matchText
+                    }
+                  </p>
+                </div>
+              ))
+            )}
+            <p className="output-line">────────────────────────────────────────</p>
+          </div>
+        )
+      }
+      
+      // Handle --tags flag
+      if (flags.includes('--tags') || flags.includes('-t')) {
+        const tags = getAllTags()
+        return (
+          <div className="command-output">
+            <p className="output-line success">🏷️ Available Tags ({getTagCount()} total)</p>
+            <p className="output-line">────────────────────────────────────────</p>
+            <div className="blog-tags-list">
+              {tags.map((tag, index) => (
+                <span key={index} className="blog-tag-item">#{tag}</span>
+              ))}
+            </div>
+            <p className="output-line">────────────────────────────────────────</p>
+            <p className="output-line">Type 'blog --search &lt;tag&gt;' to find posts with specific tags</p>
+          </div>
+        )
+      }
+      
+      // Handle --recent flag
+      if (flags.includes('--recent') || flags.includes('-n')) {
+        const recentPosts = getRecentPosts(5)
+        return (
+          <div className="command-output blog-list">
+            <p className="output-line success">🕒 Recent Posts (5 most recent)</p>
+            <p className="output-line">────────────────────────────────────────</p>
+            {recentPosts.map((post, index) => (
+              <div key={index} className="blog-list-item">
+                <div>
+                  <div 
+                    className="blog-list-title"
+                    onClick={() => {
+                      const fullPost = getPostBySlug(post.slug)
+                      if (fullPost) {
+                        setCurrentBlogPost(fullPost)
+                      }
+                    }}
+                  >
+                    {post.title}
+                  </div>
+                  <div className="blog-list-meta">
+                    <span className="blog-date">{new Date(post.date).toLocaleDateString()}</span>
+                    <span className="blog-read-time">{post.readTime} min read</span>
+                  </div>
+                  <div className="blog-list-tags">
+                    {post.tags.map((tag, tagIndex) => (
+                      <span key={tagIndex} className="blog-list-tag">#{tag}</span>
+                    ))}
+                  </div>
+                  <p className="blog-list-description">{post.description}</p>
+                </div>
+              </div>
+            ))}
+            <p className="output-line">────────────────────────────────────────</p>
+          </div>
+        )
+      }
+      
+      // Handle unknown flags or arguments
+      return (
+        <div className="command-output">
+          <p className="output-line error">Unknown option or invalid usage</p>
+          <p className="output-line">Type 'blog --help' for available options</p>
+        </div>
+      )
+    },
   }
 
   // Get all available commands for autocomplete
@@ -993,6 +1255,7 @@ const Terminal: React.FC = () => {
     'which',
     'alias',
     'export',
+    'blog',
     'set',
     'skills',
     'experience',
@@ -1372,9 +1635,52 @@ Feel free to reach out for:
     </div>
   )
 
+  // Handle initial loading
   useEffect(() => {
-    setHistory([{ command: '', output: welcomeMessage() }])
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, 2000) // Show loading for 2 seconds
     
+    return () => clearTimeout(timer)
+  }, [])
+
+  // Handle URL-based blog post opening
+  useEffect(() => {
+    if (!isLoading) {
+      if (slug) {
+        const post = getPostBySlug(slug)
+        if (post) {
+          setCurrentBlogPost(post)
+          // Add a command to history showing the blog post was opened via URL
+          setHistory([{ 
+            command: '', 
+            output: (
+              <div className="command-output">
+                <p className="output-line success">📝 Opening blog post from URL: {post.title}</p>
+                <p className="output-line">Blog window opened. Click on the window to interact with it.</p>
+              </div>
+            )
+          }])
+        } else {
+          // Post not found, show error and redirect to blog list
+          setHistory([{ 
+            command: '', 
+            output: (
+              <div className="command-output">
+                <p className="output-line error">Blog post not found: {slug}</p>
+                <p className="output-line">Redirecting to blog list...</p>
+              </div>
+            )
+          }])
+          setTimeout(() => navigate('/blog'), 2000)
+        }
+      } else {
+        setHistory([{ command: '', output: welcomeMessage() }])
+      }
+    }
+  }, [slug, navigate, isLoading])
+
+  useEffect(() => {
     // Global arrow key listener for debugging
     const globalKeyHandler = (e: KeyboardEvent) => {
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
@@ -1597,6 +1903,9 @@ Feel free to reach out for:
     } else if (baseCommand === 'theme') {
       const themeName = commandParts.slice(1).join(' ')
       output = commands.theme(themeName)
+    } else if (baseCommand === 'blog') {
+      const args = commandParts.slice(1).join(' ')
+      output = commands.blog(args)
     } else if (commands[baseCommand]) {
       output = commands[baseCommand]()
     } else if (trimmedCommand.toLowerCase().startsWith('echo ')) {
@@ -1620,6 +1929,11 @@ Feel free to reach out for:
 
   const handleTerminalClick = () => {
     inputRef.current?.focus()
+  }
+
+  // Show loading animation while loading
+  if (isLoading) {
+    return <LoadingAnimation />
   }
 
   return (
@@ -1701,6 +2015,7 @@ Feel free to reach out for:
     {activeGame === 'bspoker' && <BSPokerGame onClose={() => setActiveGame(null)} />}
     {activeGame === 'pong' && <PongGame onClose={() => setActiveGame(null)} />}
     {activeGame === 'dino' && <DinoGame onClose={() => setActiveGame(null)} />}
+    {currentBlogPost && <BlogPost post={currentBlogPost} onClose={() => setCurrentBlogPost(null)} />}
     </>
   )
 }
