@@ -31,11 +31,8 @@ COPY --from=frontend-builder /app/dist /usr/share/nginx/html
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy Ollama model files and build script
+# Copy Ollama model files
 COPY ollama-models/ /tmp/ollama-models/
-COPY scripts/ ./scripts/
-COPY package*.json ./
-RUN npm install tsx @types/node
 
 # Create startup script
 COPY start.sh /start.sh
