@@ -35,7 +35,11 @@ check_model() {
 # Function to create the model
 create_model() {
     echo "🔨 Creating rishab-bot model..."
+    echo "📁 Checking /tmp/ollama-models/ directory contents:"
+    ls -la /tmp/ollama-models/ || echo "   Directory doesn't exist"
+    
     if [ -f "/tmp/ollama-models/rishab-bot.Modelfile" ]; then
+        echo "✅ Found Modelfile, creating model..."
         ollama create rishab-bot -f /tmp/ollama-models/rishab-bot.Modelfile
         echo "✅ rishab-bot model created successfully!"
     else
