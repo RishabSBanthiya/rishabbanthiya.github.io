@@ -31,10 +31,13 @@ Thumbs.db
 *.md
 !OLLAMA_RENDER_QUICK_START.md
 
+# Production HTML files (use template instead)
+index.html.prod
+
 # Server files (not needed for frontend)
 server/
 
-# Assets (will be copied from dist)
+# Assets (will be generated during build)
 assets/
 
 # Other
