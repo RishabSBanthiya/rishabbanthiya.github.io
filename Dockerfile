@@ -11,6 +11,9 @@ RUN npm run build
 # Stage 2: Ollama + Nginx + Frontend
 FROM debian:bullseye-slim AS final
 
+# Cache busting - force rebuild when base image changes
+ARG CACHE_BUST=1
+
 # Install Ollama, Nginx, and dependencies
 RUN apt-get update && apt-get install -y curl nginx && \
     curl -fsSL https://ollama.ai/install.sh | sh && \
