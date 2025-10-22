@@ -83,3 +83,6 @@ dist
 # Temporary folders
 tmp/
 temp/
+
+# Template files that get modified during build
+index.html

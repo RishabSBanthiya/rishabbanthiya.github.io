@@ -8,7 +8,7 @@ RUN npm ci
 # Copy source files
 COPY src/ ./src/
 COPY public/ ./public/
-COPY index.html ./
+COPY index.html.template ./index.html
 COPY vite.config.ts ./
 COPY tsconfig.json ./
 COPY tsconfig.node.json ./
