@@ -32,7 +32,7 @@ check_model() {
     fi
 }
 
-# Function to create the model
+# Function to create the model with timeout and retry logic
 create_model() {
     echo "🔨 Creating rishab-bot model..."
     echo "📁 Checking /root/.ollama/models/ directory contents:"
@@ -40,12 +40,65 @@ create_model() {
     
     if [ -f "/root/.ollama/models/rishab-bot.Modelfile" ]; then
         echo "✅ Found Modelfile, creating model..."
-        ollama create rishab-bot -f /root/.ollama/models/rishab-bot.Modelfile
-        echo "✅ rishab-bot model created successfully!"
+        
+        # Try to create model with timeout and retry logic
+        for attempt in 1 2 3; do
+            echo "🔄 Attempt $attempt to create model..."
+            
+            # Set timeout for model creation (10 minutes)
+            timeout 600 ollama create rishab-bot -f /root/.ollama/models/rishab-bot.Modelfile
+            
+            if [ $? -eq 0 ]; then
+                echo "✅ rishab-bot model created successfully!"
+                return 0
+            else
+                echo "⚠️  Attempt $attempt failed, retrying in 30 seconds..."
+                sleep 30
+            fi
+        done
+        
+        echo "❌ Failed to create model after 3 attempts"
+        echo "🔄 Trying to use a smaller base model..."
+        create_fallback_model
     else
         echo "❌ Modelfile not found at /root/.ollama/models/rishab-bot.Modelfile"
-        echo "   This might cause issues with the AI feature."
+        echo "🔄 Creating fallback model..."
+        create_fallback_model
     fi
+}
+
+# Function to create a fallback model using a smaller base
+create_fallback_model() {
+    echo "🔄 Creating fallback model with smaller base..."
+    
+    # Create a simple Modelfile with a smaller model
+    cat > /tmp/fallback.Modelfile << 'EOF'
+FROM llama3.2:1b
+
+PARAMETER temperature 0.7
+PARAMETER top_p 0.9
+PARAMETER num_predict 500
+
+SYSTEM """You are shrub's bot, an AI assistant for Rishab Banthiya's portfolio. 
+
+You can help visitors learn about Rishab's skills, experience, and projects. 
+If you don't know something specific about Rishab, suggest they contact him at banthiya.rishab1511@gmail.com or visit his LinkedIn at linkedin.com/in/rishrub.
+
+Keep responses friendly and under 300 words."""
+EOF
+    
+    # Try to create the fallback model
+    timeout 300 ollama create rishab-bot -f /tmp/fallback.Modelfile
+    
+    if [ $? -eq 0 ]; then
+        echo "✅ Fallback model created successfully!"
+    else
+        echo "⚠️  Fallback model creation also failed, but continuing..."
+        echo "   AI features may not work properly."
+    fi
+    
+    # Clean up
+    rm -f /tmp/fallback.Modelfile
 }
 
 # Start Ollama in background
