@@ -20,9 +20,14 @@ FROM debian:bullseye-slim AS final
 ARG CACHE_BUST=1
 
 # Install Ollama, Nginx, and dependencies
-RUN apt-get update && apt-get install -y curl nginx && \
-    curl -fsSL https://ollama.ai/install.sh | sh && \
+RUN apt-get update && apt-get install -y curl nginx wget ca-certificates systemd && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Copy and run the robust Ollama installation script
+COPY scripts/install-ollama.sh /tmp/install-ollama.sh
+RUN chmod +x /tmp/install-ollama.sh && \
+    /tmp/install-ollama.sh && \
+    rm /tmp/install-ollama.sh
 
 # Copy frontend
 COPY --from=frontend-builder /app/dist /usr/share/nginx/html
