@@ -46,4 +46,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD curl -f http://localhost/health || exit 1
 
 # Start both Ollama and nginx
-CMD ["/start.sh"]
+CMD ["/bin/sh", "/start.sh"]
