@@ -5,7 +5,12 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
-COPY . .
+COPY src/ ./src/
+COPY public/ ./public/
+COPY index.html.template ./index.html
+COPY vite.config.ts ./
+COPY tsconfig.json ./
+COPY tsconfig.node.json ./
 RUN npm run build
 
 # Stage 2: Ollama + Nginx + Frontend
