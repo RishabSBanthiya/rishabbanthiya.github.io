@@ -32,8 +32,8 @@ COPY --from=frontend-builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # Copy Ollama model files
-RUN mkdir -p /tmp/ollama-models
-COPY ollama-models/rishab-bot.Modelfile /tmp/ollama-models/
+COPY ollama-models/ /tmp/ollama-models/
+RUN ls -la /tmp/ollama-models/
 
 # Create startup script
 COPY start.sh /start.sh
