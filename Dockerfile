@@ -45,5 +45,6 @@ EXPOSE 80 11434
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD curl -f http://localhost/health || exit 1
 
-# Start both Ollama and nginx
-CMD ["/bin/sh", "/start.sh"]
+# Override the default entrypoint and start our script
+ENTRYPOINT []
+CMD ["/bin/bash", "/start.sh"]
