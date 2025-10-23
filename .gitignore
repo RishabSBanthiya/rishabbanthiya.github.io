@@ -85,4 +85,4 @@ tmp/
 temp/
 
 # Template files that get modified during build
-index.html
+# index.html - commented out for branch-based deployment
