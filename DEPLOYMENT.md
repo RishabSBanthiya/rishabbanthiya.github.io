@@ -1,29 +1,54 @@
 # Deployment Guide
 
-## 🚀 Frontend Deployment (GitHub Pages)
+## 🚀 Frontend Deployment (GitHub Pages - Branch Based)
 
-The frontend has been built and is ready for deployment to GitHub Pages!
+The portfolio uses **branch-based deployment** for simplicity and reliability.
 
-### What's Updated
-- ✅ Production build created
-- ✅ New assets with poker game included
-- ✅ index.html updated with latest build files
-- ✅ Ready to commit and push
+### Quick Deploy
 
-### Deploy Frontend
+Use the provided deployment script:
 
 ```bash
-# Stage all changes
+./deploy.sh
 git add .
-
-# Commit with message
-git commit -m "feat: Add Terminal Poker Room - Multiplayer WebSocket game"
-
-# Push to GitHub
+git commit -m "deploy: update site"
 git push origin main
 ```
 
-GitHub Pages will automatically deploy the new version!
+### Manual Deploy
+
+If you prefer manual deployment:
+
+```bash
+# 1. Build the project
+cp index.html.template index.html
+npm run build
+
+# 2. Copy built files to root
+cp -r dist/* .
+
+# 3. Clean up
+rm index.html
+
+# 4. Commit and push
+git add .
+git commit -m "deploy: update site"
+git push origin main
+```
+
+### How It Works
+
+1. **Build Process**: The project is built locally using Vite
+2. **File Copy**: Built files are copied to the repository root
+3. **GitHub Pages**: Serves files directly from the main branch
+4. **Custom Domain**: `rishab-banthiya.com` points to GitHub Pages
+
+### Benefits of Branch Deployment
+
+- ✅ **Simple**: No complex CI/CD workflows
+- ✅ **Reliable**: Direct file serving from repository
+- ✅ **Fast**: No build delays or workflow failures
+- ✅ **Transparent**: You can see exactly what's deployed
 
 ## 🃏 Poker Server Deployment (Required for Poker Game)
 
