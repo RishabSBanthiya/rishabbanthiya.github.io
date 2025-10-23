@@ -11,7 +11,7 @@ on:
       - 'vite.config.ts'
       - 'tsconfig.json'
       - '.eslintrc.cjs'
-      - 'index.html'
+      - 'index.html*'
   pull_request:
     branches: [ main ]
     paths:
@@ -22,7 +22,7 @@ on:
       - 'vite.config.ts'
       - 'tsconfig.json'
       - '.eslintrc.cjs'
-      - 'index.html'
+      - 'index.html*'
 
 jobs:
   # Quality checks that run on both PRs and pushes
@@ -77,6 +77,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Prepare index.html
+        run: cp index.html.template index.html
+
       - name: Build production bundle
         run: npm run build
 
@@ -111,6 +114,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Prepare index.html
+        run: cp index.html.template index.html
 
       - name: Build production bundle
         run: npm run build
