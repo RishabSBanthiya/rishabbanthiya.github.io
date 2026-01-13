@@ -66,7 +66,7 @@ Humidity: ${current.humidity}%
 Wind: ${current.windspeedMiles} mph ${current.winddir16Point}
 Visibility: ${current.visibility} mi
 
-Data from wttr.in ☕`
+Data from wttr.in`
         setWeatherData(weatherText)
         setLoading(false)
       })
@@ -80,7 +80,7 @@ Data from wttr.in ☕`
   if (loading) {
     return (
       <div className="command-output">
-        <p className="output-line">⏳ Fetching weather data from wttr.in...</p>
+        <p className="output-line">Fetching weather data from wttr.in...</p>
       </div>
     )
   }
@@ -88,7 +88,7 @@ Data from wttr.in ☕`
   if (error) {
     return (
       <div className="command-output">
-        <p className="output-line error">❌ The meteorologist is on leave</p>
+        <p className="output-line error">Unable to fetch weather data</p>
         <p className="output-line">Unable to fetch weather data at this time.</p>
       </div>
     )
@@ -284,7 +284,7 @@ const JournalCtlDisplay: React.FC = () => {
             <p className="output-line">→ {tweet.text}</p>
             {tweet.url && (
               <p className="output-line" style={{fontSize: '0.85em', color: '#666'}}>
-                🔗 <a href={tweet.url} target="_blank" rel="noopener noreferrer" style={{color: '#1da1f2'}}>View tweet</a>
+                <a href={tweet.url} target="_blank" rel="noopener noreferrer" style={{color: '#1da1f2'}}>View tweet</a>
               </p>
             )}
             <p className="output-line"></p>
@@ -298,50 +298,49 @@ const JournalCtlDisplay: React.FC = () => {
 }
 
 // AI Agent Knowledge Base
-// Note: This is used by the Ollama build script (scripts/buildOllamaModel.ts)
-// to generate the custom AI model. Update this to change the AI's knowledge.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const aiKnowledgeBase = {
   personal: {
     name: "Rishab Banthiya",
-    role: "Full Stack Developer",
-    location: "United States",
+    role: "Programming Analyst at Societe Generale",
+    location: "Chicago, IL",
     email: "banthiya.rishab1511@gmail.com",
     linkedin: "linkedin.com/in/rishrub",
     github: "github.com/rishabSBanthiya",
-    interests: ["Technology", "Innovation", "Problem Solving", "Building Solutions"],
-    personality: ["Passionate", "Curious", "Detail-oriented", "Collaborative"]
+    interests: ["Data Engineering", "Quantitative Finance", "Backend Systems", "Trading Systems"],
+    personality: ["Analytical", "Detail-oriented", "Collaborative"]
   },
   skills: {
-    languages: ["JavaScript", "TypeScript", "Python", "Java"],
-    frontend: ["React", "Next.js", "HTML/CSS", "Bootstrap", "Tailwind CSS"],
-    backend: ["Node.js", "Express", "Django", "GraphQL", "REST APIs"],
-    databases: ["PostgreSQL", "MongoDB", "Redis", "Supabase"],
-    cloud: ["AWS", "Docker", "Kubernetes", "Vercel", "Netlify"],
-    tools: ["Git", "CI/CD", "Agile", "VS Code", "Figma"],
-    learning: ["Rust", "Web3", "AI/ML", "Blockchain"]
+    languages: ["Python", "Java", "SQL", "JavaScript"],
+    frameworks: ["Apache Spark", "Pandas", "Airflow", "NumPy", "Spring Boot"],
+    tools: ["Docker", "Jenkins", "Git"],
+    cloud: ["Microsoft Azure", "HDInsight"],
+    databases: ["PostgreSQL"]
   },
   experience: {
-    current: "Full Stack Developer (2023-Present)",
-    previous: "Software Engineer (2022-2023)",
-    education: "Computer Science Student (2020-2022)",
+    current: "Programming Analyst at Societe Generale (Jul 2024 - Present)",
+    previous: [
+      "Technology Analyst Intern at Societe Generale (2023)",
+      "Quantitative Analyst Intern at Banach Technologies (2022-2023)",
+      "Software Engineering Intern at Pfizer (2022)",
+      "Course Assistant at University of Illinois (2022-2023)"
+    ],
     highlights: [
-      "Building scalable web applications",
-      "Working with modern tech stack",
-      "Leading development initiatives",
-      "Collaborating with cross-functional teams",
-      "Implementing CI/CD pipelines"
+      "Built report delivery engine on Spark/Azure reducing query times from 45 min to under 5 min",
+      "Built Python/Pandas data comparison platform for 100K+ row datasets",
+      "Won 1st place AMER in company hackathon building RAG-based search tool",
+      "Developed deep Q-learning trading agent for crypto markets"
     ]
   },
-  projects: {
-    portfolio: "This interactive portfolio website built with React and TypeScript",
-    games: "Built Pong and Dino games for the terminal interface",
-    types: ["Web Applications", "Full Stack Projects", "API Development", "UI/UX Design", "Open Source"]
+  education: {
+    school: "University of Illinois at Urbana-Champaign",
+    degree: "B.S. Computer Science + Economics",
+    years: "Aug 2020 - May 2024",
+    gpa: "3.8/4.0"
   },
-  goals: {
-    current: "Open to exciting opportunities",
-    interests: ["Job opportunities", "Collaborations", "Open source projects", "Tech discussions"],
-    looking_for: ["Challenging projects", "Innovation", "Team collaboration", "Growth opportunities"]
+  projects: {
+    polymarket: "Live multi-agent trading system for prediction markets with four concurrent strategies",
+    sports: "Sports Betting Portfolio Optimizer using Markowitz optimization and Kelly criterion"
   }
 }
 
@@ -679,9 +678,10 @@ const Terminal: React.FC = () => {
     about: () => (
       <div className="command-output">
         <p className="output-line">Rishab Banthiya</p>
-        <p className="output-line">Builder, explorer of technology and business.</p>
+        <p className="output-line">Programming Analyst at Societe Generale, Chicago</p>
         <p className="output-line"></p>
-        <p className="output-line">I enjoy working on innovative projects and learning new technologies.</p>
+        <p className="output-line">UIUC CS + Economics 2024 | GPA: 3.8/4.0</p>
+        <p className="output-line">Data engineering, backend systems, and quantitative finance.</p>
       </div>
     ),
 
@@ -722,8 +722,19 @@ const Terminal: React.FC = () => {
 
     projects: () => (
       <div className="command-output">
-        <p className="output-line">Check out my GitHub for the latest projects.</p>
-        <p className="output-line">Type 'github' to visit my profile.</p>
+        <p className="output-line"><strong>Projects:</strong></p>
+        <p className="output-line"></p>
+        <p className="output-line"><strong>Polymarket Analytics</strong></p>
+        <p className="output-line">  Live multi-agent trading system for prediction markets</p>
+        <p className="output-line">  Four concurrent strategies: bond arb, flow copy-trading, stat arb, sports</p>
+        <p className="output-line">  Python, asyncio, WebSockets, SQLite, scikit-learn</p>
+        <p className="output-line"></p>
+        <p className="output-line"><strong>Sports Betting Portfolio Optimizer</strong></p>
+        <p className="output-line">  Modeling Premier League outcomes as binary options</p>
+        <p className="output-line">  Markowitz optimization and Kelly criterion</p>
+        <p className="output-line">  Python, NumPy, scikit-learn</p>
+        <p className="output-line"></p>
+        <p className="output-line">Type 'github' to see more.</p>
       </div>
     ),
 
@@ -758,16 +769,13 @@ const Terminal: React.FC = () => {
         <pre className="neofetch-output">{`
    ___           Rishab Banthiya
   /   \\          ──────────────────────────
- | O O |         OS: Full Stack Developer
-  \\___/          Shell: TypeScript + React
-                 Uptime: ${new Date().getFullYear() - 2020}+ years coding
-                 Languages: JavaScript, TypeScript, Python
-                 Frameworks: React, Node.js, Express
-                 Tools: Git, Docker, AWS
-                 Editor: VS Code
-                 Terminal: Zsh
-                 Location: ${currentDirectory}
-                 Status: Open to opportunities
+ | O O |         Role: Programming Analyst @ Societe Generale
+  \\___/          Education: UIUC CS + Econ (3.8 GPA)
+                 Languages: Python, Java, SQL, JavaScript
+                 Frameworks: Spark, Pandas, Airflow, Spring Boot
+                 Cloud: Azure, HDInsight, PostgreSQL
+                 Tools: Docker, Jenkins, Git
+                 Location: Chicago, IL
 `}</pre>
       </div>
     ),
@@ -776,7 +784,7 @@ const Terminal: React.FC = () => {
       return (
         <div className="command-output">
           <p className="output-line success">64 bytes from rishab-banthiya.com: icmp_seq=1 ttl=64 time=0.420ms</p>
-          <p className="output-line success">Ping successful! Currently available for opportunities ☕</p>
+          <p className="output-line success">Ping successful.</p>
         </div>
       )
     },
@@ -801,7 +809,7 @@ const Terminal: React.FC = () => {
             <p className="output-line"></p>
             <p className="output-line">Usage: ai &lt;your question&gt;</p>
             <p className="output-line"></p>
-            <p className="output-line">💡 Powered by Ollama - your data, running locally!</p>
+            <p className="output-line">Powered by Ollama.</p>
           </div>
         )
       }
@@ -820,12 +828,10 @@ const Terminal: React.FC = () => {
 
     uptime: () => {
       const now = new Date()
-      const daysSinceBirth = Math.floor((now.getTime() - new Date(2020, 0, 1).getTime()) / (1000 * 60 * 60 * 24))
       return (
         <div className="command-output">
-          <p className="output-line">Portfolio uptime: {daysSinceBirth}+ days</p>
           <p className="output-line">Current time: {now.toLocaleString()}</p>
-          <p className="output-line">Status: Online and accepting connections 🟢</p>
+          <p className="output-line">Status: Online</p>
         </div>
       )
     },
@@ -869,8 +875,9 @@ const Terminal: React.FC = () => {
         <p className="output-line">USER=rishab-banthiya</p>
         <p className="output-line">HOME=/portfolio</p>
         <p className="output-line">SHELL=/bin/terminal</p>
-        <p className="output-line">ROLE=Full Stack Developer</p>
-        <p className="output-line">STATUS=Open to opportunities</p>
+        <p className="output-line">ROLE=Programming Analyst</p>
+        <p className="output-line">COMPANY=Societe Generale</p>
+        <p className="output-line">LOCATION=Chicago, IL</p>
       </div>
     ),
 
@@ -891,14 +898,12 @@ const Terminal: React.FC = () => {
       <div className="command-output">
         <p className="output-line"><strong>Technical Skills:</strong></p>
         <p className="output-line"></p>
-        <p className="output-line"><strong>Languages:</strong> JavaScript, TypeScript, Python, Java</p>
-        <p className="output-line"><strong>Frontend:</strong> React, Next.js, HTML/CSS, Bootstrap, Tailwind</p>
-        <p className="output-line"><strong>Backend:</strong> Node.js, Express, Django, GraphQL, REST APIs</p>
-        <p className="output-line"><strong>Databases:</strong> PostgreSQL, MongoDB, Redis, Supabase</p>
-        <p className="output-line"><strong>Cloud:</strong> AWS, Docker, Kubernetes, Vercel, Netlify</p>
-        <p className="output-line"><strong>Tools:</strong> Git, CI/CD, Agile, VS Code, Figma</p>
+        <p className="output-line"><strong>Languages:</strong> Python, Java, SQL, JavaScript</p>
+        <p className="output-line"><strong>Frameworks:</strong> Apache Spark, Pandas, Airflow, NumPy, Spring Boot</p>
+        <p className="output-line"><strong>Cloud & Data:</strong> Microsoft Azure, PostgreSQL, HDInsight</p>
+        <p className="output-line"><strong>Tools:</strong> Docker, Jenkins, Git</p>
         <p className="output-line"></p>
-        <p className="output-line">Learning: Rust, Web3, AI/ML, Blockchain</p>
+        <p className="output-line"><strong>Spoken:</strong> English (native), Hindi (fluent)</p>
       </div>
     ),
 
@@ -906,19 +911,25 @@ const Terminal: React.FC = () => {
       <div className="command-output">
         <p className="output-line"><strong>Professional Experience:</strong></p>
         <p className="output-line"></p>
-        <p className="output-line"><strong>[2023-Present]</strong> Full Stack Developer</p>
-        <p className="output-line">  • Building scalable web applications</p>
-        <p className="output-line">  • Working with modern tech stack</p>
-        <p className="output-line">  • Leading development initiatives</p>
+        <p className="output-line"><strong>[Jul 2024-Present]</strong> Programming Analyst, Societe Generale</p>
+        <p className="output-line">  Chicago, IL</p>
+        <p className="output-line">  - Built report delivery engine on Spark/Azure HDInsight</p>
+        <p className="output-line">  - Reduced query times from 45 min to under 5 min</p>
+        <p className="output-line">  - Built Python/Pandas data comparison platform</p>
+        <p className="output-line">  - Won 1st place AMER in company hackathon (RAG search tool)</p>
         <p className="output-line"></p>
-        <p className="output-line"><strong>[2022-2023]</strong> Software Engineer</p>
-        <p className="output-line">  • Developed features for production applications</p>
-        <p className="output-line">  • Collaborated with cross-functional teams</p>
-        <p className="output-line">  • Implemented CI/CD pipelines</p>
+        <p className="output-line"><strong>[Jun-Aug 2023]</strong> Technology Analyst Intern, Societe Generale</p>
+        <p className="output-line">  Chicago, IL</p>
+        <p className="output-line">  - Built full-stack SLR reporting app</p>
+        <p className="output-line">  - PostgreSQL, Spring Boot, Highcharts dashboards</p>
         <p className="output-line"></p>
-        <p className="output-line"><strong>[2020-2022]</strong> Student & Learning</p>
-        <p className="output-line">  • Computer Science fundamentals</p>
-        <p className="output-line">  • Building projects and open source contributions</p>
+        <p className="output-line"><strong>[Oct 2022-May 2023]</strong> Quantitative Analyst Intern, Banach Technologies</p>
+        <p className="output-line">  Remote</p>
+        <p className="output-line">  - Developed deep Q-learning trading agent for crypto markets</p>
+        <p className="output-line"></p>
+        <p className="output-line"><strong>[Jun-Aug 2022]</strong> Software Engineering Intern, Pfizer</p>
+        <p className="output-line">  Groton, CT</p>
+        <p className="output-line">  - Built Apache Airflow pipelines for research team</p>
       </div>
     ),
 
@@ -926,27 +937,26 @@ const Terminal: React.FC = () => {
       <div className="command-output">
         <p className="output-line"><strong>Education:</strong></p>
         <p className="output-line"></p>
-        <p className="output-line">Computer Science Studies (2020-2022)</p>
-        <p className="output-line">Focus on full-stack web development</p>
+        <p className="output-line"><strong>University of Illinois at Urbana-Champaign</strong></p>
+        <p className="output-line">B.S. Computer Science + Economics</p>
+        <p className="output-line">Aug 2020 - May 2024</p>
+        <p className="output-line">GPA: 3.8/4.0</p>
         <p className="output-line"></p>
-        <p className="output-line"><strong>Self-Learning Achievements:</strong></p>
-        <p className="output-line">✓ Modern web technologies (React, TypeScript)</p>
-        <p className="output-line">✓ Backend development (Node.js, databases)</p>
-        <p className="output-line">✓ Cloud platforms (AWS, Docker)</p>
-        <p className="output-line">✓ DevOps & CI/CD practices</p>
+        <p className="output-line"><strong>Teaching:</strong></p>
+        <p className="output-line">Course Assistant for CS 126 & CS 222 (Jun 2022 - May 2023)</p>
+        <p className="output-line">Mentored students via code reviews and lab sections</p>
       </div>
     ),
 
     timeline: () => (
       <div className="command-output">
-        <p className="output-line"><strong>Career Timeline:</strong></p>
+        <p className="output-line"><strong>Timeline:</strong></p>
         <p className="output-line"></p>
-        <p className="output-line">2020 ──► Started learning computer science</p>
-        <p className="output-line">2021 ──► First coding projects, open source contributions</p>
-        <p className="output-line">2022 ──► Internship & freelance work</p>
-        <p className="output-line">2023 ──► Full Stack Developer role</p>
-        <p className="output-line">2024 ──► Advanced projects & leadership</p>
-        <p className="output-line">2025 ──► Open to new opportunities 🚀</p>
+        <p className="output-line">2020 ── Started at UIUC (CS + Economics)</p>
+        <p className="output-line">2022 ── Pfizer SWE Intern, started as Course Assistant</p>
+        <p className="output-line">2022 ── Banach Technologies Quant Intern</p>
+        <p className="output-line">2023 ── Societe Generale Technology Analyst Intern</p>
+        <p className="output-line">2024 ── Graduated UIUC, joined Societe Generale full-time</p>
       </div>
     ),
 
@@ -957,7 +967,7 @@ const Terminal: React.FC = () => {
       if (flags.includes('--help') || flags.includes('-h')) {
         return (
           <div className="command-output">
-            <p className="output-line success">📝 Blog System Help</p>
+            <p className="output-line success">Blog System Help</p>
             <p className="output-line">────────────────────────────────────────</p>
             <p className="output-line">Usage: blog [OPTIONS] [ARGUMENTS]</p>
             <p className="output-line"></p>
@@ -991,7 +1001,7 @@ const Terminal: React.FC = () => {
         const posts = getAllPosts()
         return (
           <div className="command-output blog-list">
-            <p className="output-line success">📝 Blog Posts ({getPostCount()} total)</p>
+            <p className="output-line success">Blog Posts ({getPostCount()} total)</p>
             <p className="output-line">────────────────────────────────────────</p>
             {posts.length === 0 ? (
               <p className="output-line">No blog posts available yet.</p>
@@ -1037,7 +1047,7 @@ const Terminal: React.FC = () => {
         const posts = getAllPosts()
         return (
           <div className="command-output blog-list">
-            <p className="output-line success">📝 Blog Posts ({getPostCount()} total)</p>
+            <p className="output-line success">Blog Posts ({getPostCount()} total)</p>
             <p className="output-line">────────────────────────────────────────</p>
             {posts.length === 0 ? (
               <p className="output-line">No blog posts available yet.</p>
@@ -1105,7 +1115,7 @@ const Terminal: React.FC = () => {
         navigate(`/blog/${slug}`)
         return (
           <div className="command-output">
-            <p className="output-line success">📝 Opening blog post: {post.title}</p>
+            <p className="output-line success">Opening blog post: {post.title}</p>
             <p className="output-line">Blog window opened. Click on the window to interact with it.</p>
             <p className="output-line">Direct link: <a href={`/blog/${slug}`} target="_blank" rel="noopener noreferrer" style={{color: 'var(--accent-primary)'}}>{window.location.origin}/blog/{slug}</a></p>
           </div>
@@ -1129,7 +1139,7 @@ const Terminal: React.FC = () => {
         const results = searchPosts(query)
         return (
           <div className="command-output blog-search-results">
-            <p className="output-line success">🔍 Search results for "{query}" ({results.length} found)</p>
+            <p className="output-line success">Search results for "{query}" ({results.length} found)</p>
             <p className="output-line">────────────────────────────────────────</p>
             {results.length === 0 ? (
               <p className="output-line">No posts found matching your search.</p>
@@ -1172,7 +1182,7 @@ const Terminal: React.FC = () => {
         const tags = getAllTags()
         return (
           <div className="command-output">
-            <p className="output-line success">🏷️ Available Tags ({getTagCount()} total)</p>
+            <p className="output-line success">Available Tags ({getTagCount()} total)</p>
             <p className="output-line">────────────────────────────────────────</p>
             <div className="blog-tags-list">
               {tags.map((tag, index) => (
@@ -1190,7 +1200,7 @@ const Terminal: React.FC = () => {
         const recentPosts = getRecentPosts(5)
         return (
           <div className="command-output blog-list">
-            <p className="output-line success">🕒 Recent Posts (5 most recent)</p>
+            <p className="output-line success">Recent Posts (5 most recent)</p>
             <p className="output-line">────────────────────────────────────────</p>
             {recentPosts.map((post, index) => (
               <div key={index} className="blog-list-item">
@@ -1400,33 +1410,26 @@ const Terminal: React.FC = () => {
       'about.txt': (
         <div className="command-output">
           <pre>{`Name: Rishab Banthiya
-Role: Full Stack Developer
-Location: United States
-Interests: Technology, Innovation, Problem Solving
+Role: Programming Analyst at Societe Generale
+Location: Chicago, IL
 
-I'm passionate about building innovative solutions and exploring
-new technologies. I enjoy working on challenging projects that
-make a real impact.
+Education:
+- University of Illinois at Urbana-Champaign
+- B.S. Computer Science + Economics (2020-2024)
+- GPA: 3.8/4.0
 
-Skills:
-- Frontend: React, TypeScript, JavaScript
-- Backend: Node.js, Express, Python
-- Database: PostgreSQL, MongoDB, Redis
-- Cloud: AWS, Docker, Kubernetes
-- Tools: Git, CI/CD, Agile
-
-Currently open to exciting opportunities!`}</pre>
+Focus areas: Data engineering, backend systems, quantitative finance`}</pre>
         </div>
       ),
       'skills.json': (
         <div className="command-output">
           <pre>{JSON.stringify({
-            "languages": ["JavaScript", "TypeScript", "Python", "Java"],
-            "frontend": ["React", "Next.js", "HTML/CSS", "Bootstrap"],
-            "backend": ["Node.js", "Express", "Django", "GraphQL"],
-            "databases": ["PostgreSQL", "MongoDB", "Redis", "Supabase"],
-            "tools": ["Git", "Docker", "AWS", "Vercel"],
-            "currently_learning": ["Rust", "Web3", "AI/ML"]
+            "languages": ["Python", "Java", "SQL", "JavaScript"],
+            "frameworks": ["Apache Spark", "Pandas", "Airflow", "NumPy", "Spring Boot"],
+            "tools": ["Docker", "Jenkins", "Git"],
+            "cloud": ["Microsoft Azure", "HDInsight"],
+            "databases": ["PostgreSQL"],
+            "spoken": ["English (native)", "Hindi (fluent)"]
           }, null, 2)}</pre>
         </div>
       ),
@@ -1438,12 +1441,7 @@ Currently open to exciting opportunities!`}</pre>
 Email: banthiya.rishab1511@gmail.com
 LinkedIn: linkedin.com/in/rishrub
 GitHub: github.com/rishabSBanthiya
-
-Feel free to reach out for:
-- Job opportunities
-- Collaborations
-- Open source projects
-- Tech discussions`}</pre>
+Phone: (217) 200-6074`}</pre>
         </div>
       ),
       'experience.log': (
@@ -1451,20 +1449,21 @@ Feel free to reach out for:
           <pre>{`Work Experience
 ===============
 
-[2023-Present] Full Stack Developer
-- Building scalable web applications
-- Working with modern tech stack
-- Leading development initiatives
+[Jul 2024-Present] Programming Analyst, Societe Generale (Chicago)
+- Report delivery engine on Spark/Azure HDInsight
+- Python/Pandas data comparison platform
+- ETL pipeline for SAP BusinessObjects migration
+- 1st place AMER hackathon (RAG search tool)
 
-[2022-2023] Software Engineer
-- Developed features for production applications
-- Collaborated with cross-functional teams
-- Implemented CI/CD pipelines
+[Jun-Aug 2023] Technology Analyst Intern, Societe Generale (Chicago)
+- Full-stack SLR reporting app
+- PostgreSQL, Spring Boot, Highcharts
 
-[2020-2022] Student & Learning
-- Computer Science fundamentals
-- Building projects
-- Contributing to open source`}</pre>
+[Oct 2022-May 2023] Quantitative Analyst Intern, Banach Technologies
+- Deep Q-learning trading agent for crypto
+
+[Jun-Aug 2022] Software Engineering Intern, Pfizer (Groton, CT)
+- Apache Airflow pipelines for research team`}</pre>
         </div>
       ),
     }
@@ -1538,10 +1537,10 @@ Feel free to reach out for:
     }
 
     const searchableContent: Record<string, string[]> = {
-      skills: ['React', 'TypeScript', 'JavaScript', 'Python', 'Node.js', 'Docker', 'AWS', 'GraphQL'],
-      about: ['Full Stack Developer', 'Technology', 'Innovation', 'Problem Solving'],
-      contact: ['Email: banthiya.rishab1511@gmail.com', 'LinkedIn', 'GitHub'],
-      projects: ['Web Applications', 'Full Stack', 'API Development', 'UI/UX Design'],
+      skills: ['Python', 'Java', 'SQL', 'JavaScript', 'Spark', 'Pandas', 'Airflow', 'Spring Boot', 'Azure', 'PostgreSQL'],
+      about: ['Programming Analyst', 'Societe Generale', 'UIUC', 'Computer Science', 'Economics'],
+      contact: ['Email: banthiya.rishab1511@gmail.com', 'LinkedIn', 'GitHub', 'Chicago'],
+      projects: ['Polymarket', 'Trading', 'Sports Betting', 'Q-learning', 'ETL'],
     }
 
     const results: string[] = []
@@ -1761,7 +1760,7 @@ Feel free to reach out for:
         setActiveGame('poker')
         output = (
           <div className="command-output">
-            <p className="output-line success">🃏 Loading Terminal Poker Room...</p>
+            <p className="output-line success">Loading Terminal Poker Room...</p>
             <p className="output-line">Starting WebSocket connection...</p>
           </div>
         )
@@ -1769,7 +1768,7 @@ Feel free to reach out for:
         setActiveGame('bspoker')
         output = (
           <div className="command-output">
-            <p className="output-line success">🎴 Loading BS Poker (Liar's Poker)...</p>
+            <p className="output-line success">Loading BS Poker...</p>
             <p className="output-line">Starting WebSocket connection...</p>
           </div>
         )

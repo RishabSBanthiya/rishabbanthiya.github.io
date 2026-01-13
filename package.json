@@ -10,9 +10,7 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext ts,tsx --fix",
-    "test": "echo \"No tests specified yet\" && exit 0",
-    "build:ollama": "tsx scripts/buildOllamaModel.ts",
-    "ollama:rebuild": "npm run build:ollama"
+    "test": "echo \"No tests specified yet\" && exit 0"
   },
   "keywords": [
     "portfolio",

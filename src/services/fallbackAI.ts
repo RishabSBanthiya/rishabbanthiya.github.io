@@ -1,5 +1,4 @@
 // Fallback AI service using pattern matching for when Ollama is not available
-// Used in production environments where Ollama can't run
 
 interface KnowledgeBase {
   personal: {
@@ -14,172 +13,113 @@ interface KnowledgeBase {
   };
   skills: {
     languages: string[];
-    frontend: string[];
-    backend: string[];
-    databases: string[];
-    cloud: string[];
+    frameworks: string[];
     tools: string[];
-    learning: string[];
+    cloud: string[];
+    databases: string[];
   };
   experience: {
     current: string;
-    previous: string;
-    education: string;
+    previous: string[];
     highlights: string[];
   };
-  projects: {
-    portfolio: string;
-    games: string;
-    types: string[];
+  education: {
+    school: string;
+    degree: string;
+    years: string;
+    gpa: string;
   };
-  goals: {
-    current: string;
-    interests: string[];
-    looking_for: string[];
+  projects: {
+    polymarket: string;
+    sports: string;
   };
 }
 
 export function processFallbackAIQuery(query: string, knowledgeBase: KnowledgeBase): string {
   const lowerQuery = query.toLowerCase();
-  
+
   // Greeting patterns
   if (lowerQuery.match(/\b(hi|hello|hey|greetings|good morning|good afternoon|good evening)\b/)) {
-    return `Hello! I'm shrub's bot. I can help you learn about Rishab's background, skills, projects, and experience. What would you like to know?`;
+    return `Hello! I can help you learn about Rishab's background, skills, projects, and experience. What would you like to know?`;
   }
-  
+
   // About/Who is Rishab
   if (lowerQuery.match(/\b(who|about|tell me about|introduce|background)\b/)) {
-    return `Rishab Banthiya is a passionate Full Stack Developer based in the United States. He's a builder and explorer of technology and business, with a strong interest in innovation and problem-solving. 
+    return `Rishab Banthiya is a ${knowledgeBase.personal.role} based in ${knowledgeBase.personal.location}.
 
-Currently open to exciting opportunities, Rishab enjoys working on challenging projects that make a real impact. He has experience building scalable web applications and working with modern tech stacks.
+Education: ${knowledgeBase.education.degree} from ${knowledgeBase.education.school} (${knowledgeBase.education.years}), GPA: ${knowledgeBase.education.gpa}
 
-You can learn more by asking about his skills, experience, projects, or contact information!`;
+He works on data engineering, backend systems, and quantitative finance projects.`;
   }
-  
+
   // Skills queries
   if (lowerQuery.match(/\b(skills|technologies|tech stack|programming|coding|languages|technical)\b/)) {
-    return `Rishab's technical skills include:
+    return `Rishab's technical skills:
 
 Languages: ${knowledgeBase.skills.languages.join(', ')}
-Frontend: ${knowledgeBase.skills.frontend.join(', ')}
-Backend: ${knowledgeBase.skills.backend.join(', ')}
-Databases: ${knowledgeBase.skills.databases.join(', ')}
-Cloud & Tools: ${knowledgeBase.skills.cloud.join(', ')}
-Currently Learning: ${knowledgeBase.skills.learning.join(', ')}
-
-He's particularly strong in React, TypeScript, Node.js, and modern web development practices.`;
+Frameworks: ${knowledgeBase.skills.frameworks.join(', ')}
+Cloud & Data: ${knowledgeBase.skills.cloud.join(', ')}, ${knowledgeBase.skills.databases.join(', ')}
+Tools: ${knowledgeBase.skills.tools.join(', ')}`;
   }
-  
+
   // Experience queries
-  if (lowerQuery.match(/\b(experience|work|job|career|background|resume)\b/)) {
+  if (lowerQuery.match(/\b(experience|work|job|career|resume)\b/)) {
     return `Rishab's professional experience:
 
-${knowledgeBase.experience.current}
-   - Building scalable web applications
-   - Working with modern tech stack
-   - Leading development initiatives
+Current: ${knowledgeBase.experience.current}
 
-${knowledgeBase.experience.previous}
-   - Developed features for production applications
-   - Collaborated with cross-functional teams
-   - Implemented CI/CD pipelines
+Previous roles:
+${knowledgeBase.experience.previous.map(p => `- ${p}`).join('\n')}
 
-${knowledgeBase.experience.education}
-   - Computer Science fundamentals
-   - Building projects and contributing to open source
-
-He's currently open to new opportunities and exciting challenges!`;
+Highlights:
+${knowledgeBase.experience.highlights.map(h => `- ${h}`).join('\n')}`;
   }
-  
+
   // Projects queries
   if (lowerQuery.match(/\b(projects|portfolio|work|built|created|developed)\b/)) {
-    return `Rishab has worked on various projects including:
+    return `Rishab's projects:
 
-This Interactive Portfolio
-   - Built with React, TypeScript, and Vite
-   - Features terminal interface with games
-   - Responsive design with Bootstrap
+Polymarket Analytics
+${knowledgeBase.projects.polymarket}
 
-Terminal Games
-   - Pong game with physics simulation
-   - Dino game inspired by Chrome's offline game
-   - Built using HTML5 Canvas and TypeScript
+Sports Betting Portfolio Optimizer
+${knowledgeBase.projects.sports}
 
-Other Projects
-   - Full-stack web applications
-   - API development and integration
-   - UI/UX design and implementation
-   - Open source contributions
-
-Check out his GitHub (github.com/rishabSBanthiya) for more projects!`;
+Check out his GitHub for more: github.com/rishabSBanthiya`;
   }
-  
+
   // Contact queries
   if (lowerQuery.match(/\b(contact|email|reach|get in touch|linkedin|github|social)\b/)) {
-    return `You can reach Rishab through:
+    return `Contact Rishab:
 
 Email: ${knowledgeBase.personal.email}
 LinkedIn: ${knowledgeBase.personal.linkedin}
-GitHub: ${knowledgeBase.personal.github}
-
-He's interested in:
-- Job opportunities
-- Collaborations
-- Open source projects
-- Tech discussions
-
-Feel free to reach out - he's always excited to connect with fellow developers!`;
+GitHub: ${knowledgeBase.personal.github}`;
   }
-  
-  // Availability/Status queries
-  if (lowerQuery.match(/\b(available|status|hiring|looking|opportunities|job search)\b/)) {
-    return `Rishab is currently:
 
-- Open to opportunities
-- Available for collaborations
-- Looking for challenging projects
-- Interested in full-stack development roles
-- Excited about innovation and growth
+  // Education queries
+  if (lowerQuery.match(/\b(education|school|university|college|degree|study)\b/)) {
+    return `Education:
 
-He's particularly interested in roles that involve:
-- Modern web technologies
-- Team collaboration
-- Problem-solving challenges
-- Continuous learning opportunities
-
-Feel free to reach out if you have an opportunity that matches!`;
+${knowledgeBase.education.school}
+${knowledgeBase.education.degree}
+${knowledgeBase.education.years}
+GPA: ${knowledgeBase.education.gpa}`;
   }
-  
+
   // What can you do queries
   if (lowerQuery.match(/\b(what can you do|help|commands|capabilities|assist)\b/)) {
-    return `I can help you learn about Rishab! I can answer questions about:
+    return `I can answer questions about Rishab's:
 
-- Personal background and interests
-- Technical skills and technologies
-- Professional experience and career
-- Projects and portfolio work
-- Contact information and availability
-- This terminal's features and games
-
-Just ask me anything like:
-- "Tell me about Rishab's skills"
-- "What projects has he worked on?"
-- "How can I contact him?"
-- "What technologies does he use?"
-
-What would you like to know?`;
-  }
-  
-  // Default response
-  return `I'm not sure I understand that question about Rishab. I can help you learn about:
-
-- His background and experience
-- Technical skills and technologies  
-- Projects and portfolio work
+- Background and experience
+- Technical skills
+- Projects
+- Education
 - Contact information
-- Availability and opportunities
 
-Try asking something like "What are Rishab's skills?" or "Tell me about his experience" and I'll be happy to help!`;
+Try: "What are Rishab's skills?" or "Tell me about his experience"`;
+  }
+
+  // Default response
+  return `I can help you learn about Rishab's background, skills, projects, education, or contact info. What would you like to know?`;
 }
-
-

@@ -2,8 +2,8 @@ import { BlogPost, BlogMetadata, BlogSearchResult } from '../../types/blog.types
 import { parseMarkdownFile, calculateReadTime } from '../../utils/markdownParser'
 
 // Import blog post content
-import welcomePost from './posts/welcome-to-my-blog.md?raw'
-import terminalPortfolioPost from './posts/building-terminal-portfolio.md?raw'
+import tradingPost from './posts/multi-agent-trading.md?raw'
+import sparkPost from './posts/scaling-spark-reports.md?raw'
 
 // Parse blog posts
 const parseBlogPost = (content: string, slug: string): BlogPost => {
@@ -23,8 +23,8 @@ const parseBlogPost = (content: string, slug: string): BlogPost => {
 
 // Blog posts registry
 const blogPosts: BlogPost[] = [
-  parseBlogPost(welcomePost, 'welcome-to-my-blog'),
-  parseBlogPost(terminalPortfolioPost, 'building-terminal-portfolio')
+  parseBlogPost(tradingPost, 'multi-agent-trading'),
+  parseBlogPost(sparkPost, 'scaling-spark-reports')
 ]
 
 // Helper functions

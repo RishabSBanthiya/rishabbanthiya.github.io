@@ -70,12 +70,12 @@ export async function* queryOllamaStream(
     
     if (error instanceof Error) {
       if (error.message === 'MODEL_NOT_FOUND') {
-        yield `⚠️ Custom model "rishab-bot" not found.\n\nPlease run: npm run build:ollama\n\nThis will create your personalized AI model.`;
+        yield `Custom model "rishab-bot" not found. The AI assistant is not available.`;
         return;
       }
       
       if (error.message.includes('fetch') || error.message.includes('network')) {
-        yield "⚠️ Ollama isn't running.\n\nStart it with: ollama serve\n\nThen reload this page.";
+        yield "Ollama is not running. Start it with: ollama serve";
         return;
       }
     }

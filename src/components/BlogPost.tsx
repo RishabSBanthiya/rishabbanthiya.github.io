@@ -104,7 +104,7 @@ const BlogPost: React.FC<BlogPostProps> = ({ post, onClose }) => {
         onClick={() => setIsMinimized(false)}
       >
         <span style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>
-          📝 {post.title}
+          {post.title}
         </span>
       </div>
     )
@@ -209,7 +209,7 @@ const BlogPost: React.FC<BlogPostProps> = ({ post, onClose }) => {
           flex: 1,
           textAlign: 'center'
         }}>
-          📝 {post.title}
+          {post.title}
         </div>
       </div>
 
