@@ -10,13 +10,13 @@ echo "📦 Building project..."
 cp index.html.template index.html
 npm run build
 
+# Clean up template file before copying
+echo "🧹 Cleaning up..."
+rm index.html
+
 # Copy built files to root
 echo "📋 Copying built files to root..."
 cp -r dist/* .
-
-# Clean up temporary files
-echo "🧹 Cleaning up..."
-rm index.html
 
 # Show what was deployed
 echo "✅ Deployment ready! Files in root:"
