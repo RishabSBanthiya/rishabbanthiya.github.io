@@ -126,7 +126,7 @@ export const PokerGame: React.FC<PokerGameProps> = ({ onClose }) => {
     return (
       <div className="poker-game-wrapper">
         <div className="poker-connecting">
-          <h3>🔌 Connecting to Poker Server...</h3>
+          <h3>Connecting to Poker Server...</h3>
           {error && (
             <div className="poker-error">
               <p>{error}</p>

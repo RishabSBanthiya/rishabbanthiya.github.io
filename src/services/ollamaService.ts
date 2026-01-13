@@ -97,14 +97,24 @@ export async function checkOllamaStatus(): Promise<boolean> {
   }
 }
 
+interface OllamaModel {
+  name: string;
+  modified_at: string;
+  size: number;
+}
+
+interface OllamaTagsResponse {
+  models?: OllamaModel[];
+}
+
 // Check if custom model exists
 export async function checkCustomModel(): Promise<boolean> {
   try {
     const apiUrl = isProduction ? '/api/tags' : 'http://localhost:11434/api/tags';
     const response = await fetch(apiUrl);
-    const data = await response.json();
-    const models = data.models?.map((m: any) => m.name) || [];
-    return models.some((name: string) => name.startsWith('rishab-bot'));
+    const data: OllamaTagsResponse = await response.json();
+    const models = data.models?.map((m) => m.name) || [];
+    return models.some((name) => name.startsWith('rishab-bot'));
   } catch {
     return false;
   }
@@ -115,8 +125,8 @@ export async function getAvailableModels(): Promise<string[]> {
   try {
     const apiUrl = isProduction ? '/api/tags' : 'http://localhost:11434/api/tags';
     const response = await fetch(apiUrl);
-    const data = await response.json();
-    return data.models?.map((m: any) => m.name) || [];
+    const data: OllamaTagsResponse = await response.json();
+    return data.models?.map((m) => m.name) || [];
   } catch {
     return [];
   }

@@ -1,23 +1,26 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
-import PongGame from './PongGame'
-import DinoGame from './DinoGame'
-import { PokerGame } from './poker/PokerGame'
-import { BSPokerGame } from './bspoker/BSPokerGame'
 import BlogPost from './BlogPost'
 import { useTheme } from '../contexts/ThemeContext'
-import { queryOllamaStream, checkOllamaStatus, checkCustomModel } from '../services/ollamaService'
-import { processFallbackAIQuery } from '../services/fallbackAI'
-import { 
-  getAllPosts, 
-  getPostBySlug, 
-  getRecentPosts, 
-  getAllTags, 
+import { WeatherDisplay } from './terminal/WeatherDisplay'
+import { JournalCtlDisplay } from './terminal/JournalCtlDisplay'
+import { AIAgentResponse } from './terminal/AIAgentResponse'
+import {
+  getAllPosts,
+  getPostBySlug,
+  getRecentPosts,
+  getAllTags,
   searchPosts,
   getPostCount,
   getTagCount
 } from '../content/blog'
 import { BlogPost as BlogPostType } from '../types/blog.types'
+
+// Lazy load game components to reduce initial bundle size
+const PongGame = lazy(() => import('./PongGame'))
+const DinoGame = lazy(() => import('./DinoGame'))
+const PokerGame = lazy(() => import('./poker/PokerGame').then(m => ({ default: m.PokerGame })))
+const BSPokerGame = lazy(() => import('./bspoker/BSPokerGame').then(m => ({ default: m.BSPokerGame })))
 
 interface CommandHistory {
   command: string
@@ -29,403 +32,14 @@ interface Position {
   y: number
 }
 
-// Weather Display Component
-const WeatherDisplay: React.FC = () => {
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
-  const [weatherData, setWeatherData] = useState<string>('')
+// Game loading fallback component
+const GameLoadingFallback: React.FC = () => (
+  <div className="command-output">
+    <p className="output-line">Loading game...</p>
+  </div>
+)
 
-  useEffect(() => {
-    // Create an AbortController for timeout
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
 
-    fetch('https://wttr.in/?format=j1', {
-      signal: controller.signal,
-      headers: {
-        'Accept': 'application/json'
-      }
-    })
-      .then(res => {
-        clearTimeout(timeoutId)
-        if (res.status === 200) {
-          return res.json()
-        } else {
-          throw new Error('Non-200 response')
-        }
-      })
-      .then(data => {
-        const current = data.current_condition[0]
-        const location = data.nearest_area[0]
-        const weatherText = `Weather for ${location.areaName[0].value}, ${location.region[0].value}
-========================
-Condition: ${current.weatherDesc[0].value}
-Temperature: ${current.temp_F}°F (${current.temp_C}°C)
-Feels like: ${current.FeelsLikeF}°F
-Humidity: ${current.humidity}%
-Wind: ${current.windspeedMiles} mph ${current.winddir16Point}
-Visibility: ${current.visibility} mi
-
-Data from wttr.in`
-        setWeatherData(weatherText)
-        setLoading(false)
-      })
-      .catch(() => {
-        clearTimeout(timeoutId)
-        setLoading(false)
-        setError(true)
-      })
-  }, [])
-
-  if (loading) {
-    return (
-      <div className="command-output">
-        <p className="output-line">Fetching weather data from wttr.in...</p>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="command-output">
-        <p className="output-line error">Unable to fetch weather data</p>
-        <p className="output-line">Unable to fetch weather data at this time.</p>
-      </div>
-    )
-  }
-
-  return (
-    <div className="command-output">
-      <pre>{weatherData}</pre>
-    </div>
-  )
-}
-
-// JournalCtl Display Component (Twitter/X Feed)
-const JournalCtlDisplay: React.FC = () => {
-  const [loading, setLoading] = useState(true)
-  const [tweets, setTweets] = useState<Array<{text: string, created_at: string, url?: string}>>([])
-  const [error, setError] = useState(false)
-  const [source, setSource] = useState<string>('')
-  const [errorData, setErrorData] = useState<any>(null)
-
-  useEffect(() => {
-    const fetchTweets = async () => {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000)
-
-      try {
-        const username = 'ri_shrub'
-        // Use backend proxy API
-        const apiUrl = `http://localhost:3001/api/tweets/${username}?count=10`
-        
-        const response = await fetch(apiUrl, {
-          signal: controller.signal,
-          headers: {
-            'Accept': 'application/json'
-          }
-        })
-
-        clearTimeout(timeoutId)
-        const data = await response.json()
-        
-        if (response.ok && data.success) {
-          if (data.tweets && data.tweets.length > 0) {
-            setTweets(data.tweets)
-            setSource(data.source || 'backend')
-            // Check if this is a rate-limited fallback response
-            if (data.source === 'fallback-rate-limit' && data.rateLimitInfo) {
-              setErrorData(data.rateLimitInfo)
-            }
-          } else {
-            setTweets([])
-            setSource(data.source || 'backend')
-          }
-          setLoading(false)
-        } else {
-          // Handle error response - store full error data
-          console.log('Error response from API:', data)
-          setErrorData(data)
-          setError(true)
-          setLoading(false)
-        }
-      } catch (err: unknown) {
-        clearTimeout(timeoutId)
-        console.error('Failed to fetch tweets:', err)
-        // Only set error data if we don't already have it from the response
-        if (!errorData) {
-          if (err && typeof err === 'object' && 'message' in err) {
-            setErrorData({ error: (err as Error).message })
-          }
-        }
-        setError(true)
-        setLoading(false)
-      }
-    }
-
-    fetchTweets()
-  }, [])
-
-  if (loading) {
-    return (
-      <div className="command-output">
-        <p className="output-line">Fetching tweets from @ri_shrub...</p>
-      </div>
-    )
-  }
-
-  // Check for rate limit info even if we have tweets (fallback scenario)
-  const isRateLimited = errorData?.error === 'Rate Limit'
-
-  if (error || tweets.length === 0) {
-    const isServerDown = !errorData
-    const isApiNotConfigured = errorData?.error === 'Twitter API not configured'
-    const isInvalidToken = errorData?.error === 'Invalid Twitter Bearer Token'
-    
-    return (
-      <div className="command-output">
-        <p className="output-line"><strong>-- Logs from @ri_shrub --</strong></p>
-        <p className="output-line"></p>
-        
-        {isServerDown && (
-          <>
-            <p className="output-line">Unable to connect to Twitter API.</p>
-            <p className="output-line"></p>
-            <p className="output-line">Check your internet connection and try again.</p>
-            <p className="output-line"></p>
-          </>
-        )}
-        
-        {isApiNotConfigured && (
-          <>
-            <p className="output-line">Twitter API not configured</p>
-            <p className="output-line"></p>
-            <p className="output-line"><strong>Setup Instructions:</strong></p>
-            <p className="output-line">1. Get a Bearer Token from Twitter Developer Portal</p>
-            <p className="output-line">   <a href="https://developer.twitter.com/en/portal/dashboard" target="_blank" rel="noopener noreferrer" style={{color: '#1da1f2'}}>developer.twitter.com</a></p>
-            <p className="output-line"></p>
-            <p className="output-line">2. Create <code>server/.env</code> file</p>
-            <p className="output-line"></p>
-            <p className="output-line">3. Add your token:</p>
-            <p className="output-line">   <code>TWITTER_BEARER_TOKEN=your_token_here</code></p>
-            <p className="output-line"></p>
-            <p className="output-line">4. Restart the server</p>
-            <p className="output-line"></p>
-            <p className="output-line">See <code>TWITTER_API_SETUP.md</code> for detailed instructions</p>
-            <p className="output-line"></p>
-          </>
-        )}
-        
-        {isInvalidToken && (
-          <>
-            <p className="output-line">Invalid Twitter Bearer Token</p>
-            <p className="output-line"></p>
-            <p className="output-line"><strong>Fix Instructions:</strong></p>
-            <p className="output-line">1. Go to <a href="https://developer.twitter.com/en/portal/dashboard" target="_blank" rel="noopener noreferrer" style={{color: '#1da1f2'}}>Twitter Developer Portal</a></p>
-            <p className="output-line"></p>
-            <p className="output-line">2. Sign in with your @ri_shrub account</p>
-            <p className="output-line"></p>
-            <p className="output-line">3. Create a new app or regenerate Bearer Token</p>
-            <p className="output-line"></p>
-            <p className="output-line">4. Ensure the token has "Read" permissions</p>
-            <p className="output-line"></p>
-            <p className="output-line">5. Update <code>server/.env</code> with the new token</p>
-            <p className="output-line"></p>
-            <p className="output-line">6. Restart the server</p>
-            <p className="output-line"></p>
-            <p className="output-line">Current token appears to be invalid or expired</p>
-            <p className="output-line"></p>
-          </>
-        )}
-        
-        {isRateLimited && (
-          <>
-            <p className="output-line">{errorData?.message || "rishab's twitter is acting up, try again later"}</p>
-            {errorData?.resetTime ? (
-              <p className="output-line">
-                Try again after: {new Date(errorData.resetTime).toLocaleString()}
-              </p>
-            ) : errorData?.resetDate ? (
-              <p className="output-line">
-                Try again after: {new Date(errorData.resetDate).toLocaleString()}
-              </p>
-            ) : null}
-            <p className="output-line"></p>
-          </>
-        )}
-        
-        {!isServerDown && !isApiNotConfigured && !isInvalidToken && !isRateLimited && errorData && (
-          <>
-            <p className="output-line">{errorData.message || 'Failed to fetch tweets'}</p>
-            <p className="output-line"></p>
-          </>
-        )}
-        
-        <p className="output-line">View latest tweets directly:</p>
-        <p className="output-line">   <a href="https://x.com/ri_shrub" target="_blank" rel="noopener noreferrer" style={{color: '#1da1f2', textDecoration: 'underline'}}>https://x.com/ri_shrub</a></p>
-      </div>
-    )
-  }
-
-  return (
-    <div className="command-output">
-      <p className="output-line"><strong>-- Logs from @ri_shrub (Latest {tweets.length} tweets) --</strong></p>
-      <p className="output-line"><span style={{color: '#666', fontSize: '0.9em'}}>Source: {source}</span></p>
-      {isRateLimited && errorData?.resetTime && (
-        <p className="output-line"><span style={{color: '#666', fontSize: '0.9em'}}>Last updated: {new Date(errorData.resetTime - 86400000).toLocaleString()}</span></p>
-      )}
-      <p className="output-line"></p>
-      
-      {tweets.map((tweet, index) => {
-        const date = tweet.created_at ? new Date(tweet.created_at).toLocaleString() : 'Unknown date'
-        return (
-          <React.Fragment key={index}>
-            <p className="output-line"><span style={{color: '#555'}}>[{date}]</span></p>
-            <p className="output-line">→ {tweet.text}</p>
-            {tweet.url && (
-              <p className="output-line" style={{fontSize: '0.85em', color: '#666'}}>
-                <a href={tweet.url} target="_blank" rel="noopener noreferrer" style={{color: '#1da1f2'}}>View tweet</a>
-              </p>
-            )}
-            <p className="output-line"></p>
-          </React.Fragment>
-        )
-      })}
-      <p className="output-line">────────────────────────────────────────</p>
-      <p className="output-line">View more at: <a href="https://x.com/ri_shrub" target="_blank" rel="noopener noreferrer" style={{color: '#1da1f2'}}>@ri_shrub</a></p>
-    </div>
-  )
-}
-
-// AI Agent Knowledge Base
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const aiKnowledgeBase = {
-  personal: {
-    name: "Rishab Banthiya",
-    role: "Programming Analyst at Societe Generale",
-    location: "Chicago, IL",
-    email: "banthiya.rishab1511@gmail.com",
-    linkedin: "linkedin.com/in/rishrub",
-    github: "github.com/rishabSBanthiya",
-    interests: ["Data Engineering", "Quantitative Finance", "Backend Systems", "Trading Systems"],
-    personality: ["Analytical", "Detail-oriented", "Collaborative"]
-  },
-  skills: {
-    languages: ["Python", "Java", "SQL", "JavaScript"],
-    frameworks: ["Apache Spark", "Pandas", "Airflow", "NumPy", "Spring Boot"],
-    tools: ["Docker", "Jenkins", "Git"],
-    cloud: ["Microsoft Azure", "HDInsight"],
-    databases: ["PostgreSQL"]
-  },
-  experience: {
-    current: "Programming Analyst at Societe Generale (Jul 2024 - Present)",
-    previous: [
-      "Technology Analyst Intern at Societe Generale (2023)",
-      "Quantitative Analyst Intern at Banach Technologies (2022-2023)",
-      "Software Engineering Intern at Pfizer (2022)",
-      "Course Assistant at University of Illinois (2022-2023)"
-    ],
-    highlights: [
-      "Built report delivery engine on Spark/Azure reducing query times from 45 min to under 5 min",
-      "Built Python/Pandas data comparison platform for 100K+ row datasets",
-      "Won 1st place AMER in company hackathon building RAG-based search tool",
-      "Developed deep Q-learning trading agent for crypto markets"
-    ]
-  },
-  education: {
-    school: "University of Illinois at Urbana-Champaign",
-    degree: "B.S. Computer Science + Economics",
-    years: "Aug 2020 - May 2024",
-    gpa: "3.8/4.0"
-  },
-  projects: {
-    polymarket: "Live multi-agent trading system for prediction markets with four concurrent strategies",
-    sports: "Sports Betting Portfolio Optimizer using Markowitz optimization and Kelly criterion"
-  }
-}
-
-// AI Agent Response Component (Ollama-powered with fallback)
-const AIAgentResponse: React.FC<{ query: string }> = ({ query }) => {
-  const [displayedText, setDisplayedText] = useState('')
-  const [isLoading, setIsLoading] = useState(true)
-  const [usedFallback, setUsedFallback] = useState(false)
-  const [currentIndex, setCurrentIndex] = useState(0)
-
-  useEffect(() => {
-    const fetchResponse = async () => {
-      try {
-        setIsLoading(true)
-        setUsedFallback(false)
-        
-        // Try Ollama first
-        const isRunning = await checkOllamaStatus()
-        
-        if (isRunning) {
-          // Check if custom model exists
-          const hasCustomModel = await checkCustomModel()
-          
-          if (hasCustomModel) {
-            // Use Ollama - stream response
-            try {
-              for await (const chunk of queryOllamaStream(query)) {
-                setDisplayedText(prev => prev + chunk)
-              }
-              setIsLoading(false)
-              return
-            } catch (ollamaError) {
-              console.warn('Ollama streaming failed, falling back to pattern matching:', ollamaError)
-            }
-          }
-        }
-        
-        // Fallback to pattern matching AI (for production or when Ollama unavailable)
-        console.log('Using fallback AI (pattern matching)')
-        setUsedFallback(true)
-        const fallbackResponse = processFallbackAIQuery(query, aiKnowledgeBase)
-        setDisplayedText(fallbackResponse)
-        setIsLoading(false)
-      } catch (err) {
-        console.error('AI Error:', err)
-        // Use fallback even on error
-        setUsedFallback(true)
-        const fallbackResponse = processFallbackAIQuery(query, aiKnowledgeBase)
-        setDisplayedText(fallbackResponse)
-        setIsLoading(false)
-      }
-    }
-
-    fetchResponse()
-  }, [query])
-
-  // Typing effect for fallback mode (to simulate streaming)
-  useEffect(() => {
-    if (usedFallback && !isLoading && currentIndex < displayedText.length) {
-      const timer = setTimeout(() => {
-        setCurrentIndex(prev => prev + 1)
-      }, 15) // Fast typing speed
-      return () => clearTimeout(timer)
-    }
-  }, [currentIndex, displayedText, isLoading, usedFallback])
-
-  const displayText = usedFallback ? displayedText.substring(0, currentIndex) : displayedText
-  const showCursor = isLoading || (usedFallback && currentIndex < displayedText.length)
-
-  return (
-    <div className="command-output">
-      <div className="ai-agent-response">
-        <div className="ai-prompt">
-          <span className="ai-name">
-            shrub's bot{usedFallback ? ' (smart mode)' : ' (powered by Ollama)'}:
-          </span>
-        </div>
-        <div className="ai-content">
-          <pre style={{ whiteSpace: 'pre-wrap' }}>{displayText}</pre>
-          {showCursor && <span className="typing-cursor">|</span>}
-        </div>
-      </div>
-    </div>
-  )
-}
 
 // Helper function to parse command flags
 const parseCommand = (command: string) => {
@@ -1980,10 +1594,26 @@ Phone: (217) 200-6074`}</pre>
         </div>
       </div>
     </div>
-    {activeGame === 'poker' && <PokerGame onClose={() => setActiveGame(null)} />}
-    {activeGame === 'bspoker' && <BSPokerGame onClose={() => setActiveGame(null)} />}
-    {activeGame === 'pong' && <PongGame onClose={() => setActiveGame(null)} />}
-    {activeGame === 'dino' && <DinoGame onClose={() => setActiveGame(null)} />}
+    {activeGame === 'poker' && (
+      <Suspense fallback={<GameLoadingFallback />}>
+        <PokerGame onClose={() => setActiveGame(null)} />
+      </Suspense>
+    )}
+    {activeGame === 'bspoker' && (
+      <Suspense fallback={<GameLoadingFallback />}>
+        <BSPokerGame onClose={() => setActiveGame(null)} />
+      </Suspense>
+    )}
+    {activeGame === 'pong' && (
+      <Suspense fallback={<GameLoadingFallback />}>
+        <PongGame onClose={() => setActiveGame(null)} />
+      </Suspense>
+    )}
+    {activeGame === 'dino' && (
+      <Suspense fallback={<GameLoadingFallback />}>
+        <DinoGame onClose={() => setActiveGame(null)} />
+      </Suspense>
+    )}
     {currentBlogPost && <BlogPost post={currentBlogPost} onClose={() => setCurrentBlogPost(null)} />}
     </>
   )

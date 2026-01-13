@@ -59,8 +59,8 @@ export function parseMarkdownFile(content: string): { frontmatter: Frontmatter; 
       } else {
         frontmatter.tags = [value]
       }
-    } else {
-      (frontmatter as any)[key] = value
+    } else if (key === 'title' || key === 'date' || key === 'description') {
+      frontmatter[key] = value
     }
   }
   
