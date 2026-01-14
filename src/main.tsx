@@ -5,7 +5,6 @@ import { ThemeProvider } from './contexts/ThemeContext'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import './styles/theme.css'
 import './styles/index.css'
-import './styles/poker.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
