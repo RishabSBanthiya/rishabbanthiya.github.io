@@ -88,6 +88,22 @@ Modeling Premier League outcomes as binary options.
 ## Results
 - Backtested on 3 seasons of data`
           },
+          'prediction-market-data.md': {
+            type: 'file',
+            content: `# Prediction Market Data Services
+
+Real-time data infrastructure for prediction markets.
+
+## Overview
+- High-performance data pipelines for market data collection
+- Real-time WebSocket streaming and historical data storage
+- REST API for market analysis and backtesting
+
+## GitHub
+https://github.com/RishabSBanthiya/prediction-market-data-services
+
+## Status: Active Development`
+          },
           'README.md': {
             type: 'file',
             content: `# Projects
@@ -95,7 +111,8 @@ Modeling Premier League outcomes as binary options.
 This directory contains documentation for my main projects.
 
 - polymarket.md - Multi-agent trading system
-- sports-betting.md - Portfolio optimization for sports betting`
+- sports-betting.md - Portfolio optimization for sports betting
+- prediction-market-data.md - Data services for prediction markets`
           }
         }
       },
