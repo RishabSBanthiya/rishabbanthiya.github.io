@@ -1,6 +1,6 @@
 # Rishab Banthiya
 
-Personal portfolio website.
+Personal website.
 
 ## Development
 

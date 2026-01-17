@@ -1,7 +1,7 @@
 {
-  "name": "rishab-banthiya-portfolio",
+  "name": "rishab-banthiya-website",
   "version": "1.0.0",
-  "description": "Rishab Banthiya's Personal Portfolio Website",
+  "description": "Rishab Banthiya's Personal Website",
   "main": "dist/index.js",
   "scripts": {
     "dev": "vite",
@@ -13,7 +13,7 @@
     "test": "echo \"No tests specified yet\" && exit 0"
   },
   "keywords": [
-    "portfolio",
+    "personal-website",
     "typescript",
     "react",
     "vite"

@@ -24,7 +24,7 @@ npm run dev          # Start WebSocket server (port 3001)
 
 ## Architecture
 
-Personal portfolio website with an interactive terminal interface.
+Personal website with an interactive terminal interface.
 
 ### Frontend (`src/`)
 - **React 18 + TypeScript + Vite** with Bootstrap 5

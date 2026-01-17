@@ -3,7 +3,7 @@
 # Simple deployment script for GitHub Pages
 # This script builds the project and copies files to root for branch-based deployment
 
-echo "🚀 Building portfolio for GitHub Pages deployment..."
+echo "🚀 Building site for GitHub Pages deployment..."
 
 # Build the project
 echo "📦 Building project..."

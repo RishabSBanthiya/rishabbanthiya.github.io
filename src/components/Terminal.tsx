@@ -315,10 +315,10 @@ const Terminal: React.FC = () => {
     }, [])
 
     const frames = [
-      '⠋ Loading portfolio...',
-      '⠙ Loading portfolio...',
-      '⠹ Loading portfolio...',
-      '⠸ Loading portfolio...'
+      '⠋ Loading...',
+      '⠙ Loading...',
+      '⠹ Loading...',
+      '⠸ Loading...'
     ]
 
     return (
@@ -664,9 +664,9 @@ const Terminal: React.FC = () => {
     neofetch: () => (
       <div className="command-output">
         <pre className="neofetch-output">{`
-   ___           rishab@portfolio
+   ___           rishab@local
   /   \\          ──────────────────────────
- | O O |         OS: Portfolio Terminal v1.0
+ | O O |         OS: Terminal v1.0
   \\___/          Host: rishab-banthiya.com
                  Uptime: since 2024
                  Shell: /bin/terminal
@@ -698,7 +698,7 @@ const Terminal: React.FC = () => {
 
     uname: () => (
       <div className="command-output">
-        <p className="output-line">Portfolio Terminal 1.0.0 (React/TypeScript)</p>
+        <p className="output-line">Terminal 1.0.0 (React/TypeScript)</p>
       </div>
     ),
 
@@ -940,7 +940,7 @@ const Terminal: React.FC = () => {
 ╚═╝  ╚═╝╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
 `}
       </pre>
-      <p className="output-line">Welcome to Rishab's portfolio! Type 'help' to get started.</p>
+      <p className="output-line">Welcome to Rishab's site! Type 'help' to get started.</p>
       <p className="output-line">Try: ls, cd projects, cat about.txt, tree</p>
       <p className="output-line"></p>
     </div>
@@ -1157,7 +1157,7 @@ const Terminal: React.FC = () => {
           <span className="terminal-button minimize"></span>
           <span className="terminal-button maximize"></span>
         </div>
-        <div className="terminal-title">rishab@portfolio:{displayPath}</div>
+        <div className="terminal-title">rishab@local:{displayPath}</div>
       </div>
       <div className="terminal-container" onClick={handleTerminalClick}>
         <div className="terminal-body" ref={terminalRef}>
@@ -1165,7 +1165,7 @@ const Terminal: React.FC = () => {
             <div key={index}>
               {item.command && (
                 <div className="terminal-input-line">
-                  <span className="terminal-prompt">rishab@portfolio:{displayPath}$</span>
+                  <span className="terminal-prompt">rishab@local:{displayPath}$</span>
                   <span className="terminal-command">{item.command}</span>
                 </div>
               )}
@@ -1175,7 +1175,7 @@ const Terminal: React.FC = () => {
           <form onSubmit={handleSubmit} className="terminal-input-form">
             <div className="terminal-input-line">
               <label htmlFor="terminal-input" className="terminal-prompt">
-                rishab@portfolio:{displayPath}$
+                rishab@local:{displayPath}$
               </label>
               <div className="terminal-input-wrapper">
                 <input
