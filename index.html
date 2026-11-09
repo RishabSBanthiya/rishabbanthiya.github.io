@@ -1,42 +1,38 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="terminal">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/html-tag-icon.png" />
+    <link rel="icon" type="image/png" href="/html-tag-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rishab Banthiya</title>
-    <meta name="description" content="Rishab Banthiya - Programming Analyst at Societe Generale. UIUC CS + Economics.">
+    <meta name="description" content="Rishab Banthiya - Corporate and Investment Banking at Societe Generale. UIUC Computer Science + Economics.">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://rishab-banthiya.com/">
     <meta property="og:title" content="Rishab Banthiya">
-    <meta property="og:description" content="Programming Analyst at Societe Generale. UIUC CS + Economics.">
+    <meta property="og:description" content="Corporate and Investment Banking at Societe Generale. UIUC Computer Science + Economics.">
     <meta property="og:image" content="https://rishab-banthiya.com/html-tag-icon.png">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary">
     <meta name="twitter:url" content="https://rishab-banthiya.com/">
     <meta name="twitter:title" content="Rishab Banthiya">
-    <meta name="twitter:description" content="Programming Analyst at Societe Generale. UIUC CS + Economics.">
+    <meta name="twitter:description" content="Corporate and Investment Banking at Societe Generale. UIUC Computer Science + Economics.">
     <meta name="twitter:image" content="https://rishab-banthiya.com/html-tag-icon.png">
-    <!-- Google Fonts -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap">
-    <!-- FontAwesome CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    
+
     <!-- Theme initialization script - runs before page load to prevent flashing -->
     <script>
       (function() {
-        const savedTheme = localStorage.getItem('theme') || 'terminal';
-        document.documentElement.setAttribute('data-theme', savedTheme);
+        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-bs-theme', isDark ? 'dark' : 'light');
       })();
     </script>
-    
+
     <!-- Vite will inject the correct script and CSS tags during development and build -->
     
-    <script type="module" crossorigin src="/assets/index-a96e086a.js"></script>
-    <link rel="stylesheet" href="/assets/index-ca7d94dd.css">
+    <script type="module" crossorigin src="/assets/index-50434b01.js"></script>
+    <link rel="stylesheet" href="/assets/index-885bfead.css">
   </head>
   <body>
     <div id="root"></div>
