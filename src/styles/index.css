@@ -1,34 +1,26 @@
-/* Global styles - Themed */
-body {
-  font-family: 'Courier New', 'Courier', monospace;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-  overflow-x: hidden;
-  transition: background 0.3s ease, color 0.3s ease;
+/* Global styles - overrides Bootstrap's palette and type with a serif, paper-and-ink look */
+:root,
+[data-bs-theme='light'] {
+  --bs-body-font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  --bs-body-bg: #faf7f2;
+  --bs-body-color: #1f1b16;
+  --bs-secondary-color: rgba(31, 27, 22, 0.7);
+  --bs-emphasis-color-rgb: 31, 27, 22;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+[data-bs-theme='dark'] {
+  --bs-body-bg: #171512;
+  --bs-body-color: #ece6dc;
+  --bs-secondary-color: rgba(236, 230, 220, 0.7);
+  --bs-emphasis-color-rgb: 236, 230, 220;
 }
 
-#root {
-  min-height: 100vh;
+h1 {
+  font-weight: 400;
+  letter-spacing: -0.01em;
 }
 
-/* Remove all previous retro/green styling */
-.navbar-brand,
-.navbar,
-.nav-item,
-.nav-link,
-.custom-button,
-.section-divider,
-.featured-work,
-.circular-picture,
-.profile-picture {
-  display: none;
+.paper-plane {
+  width: 15rem;
+  max-width: 100%;
 }

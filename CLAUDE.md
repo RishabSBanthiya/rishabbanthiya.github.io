@@ -13,31 +13,21 @@ npm run type-check   # TypeScript type checking only
 npm run lint         # ESLint check
 npm run lint:fix     # ESLint with auto-fix
 
-# Backend server (for poker/websocket features)
-cd server
-npm install          # First time only
-npm run dev          # Start WebSocket server (port 3001)
-
 # Deployment (GitHub Pages)
 ./deploy.sh          # Build and copy to root for branch-based deployment
 ```
 
+`index.html.template` is the HTML source; the root `index.html` is the last deployed build. For `npm run dev`, first run `cp index.html.template index.html`.
+
 ## Architecture
 
-Personal website with an interactive terminal interface.
+Minimal single-page personal website: a name, a one-line blurb, and links to the resume, LinkedIn and Substack.
 
-### Frontend (`src/`)
 - **React 18 + TypeScript + Vite** with Bootstrap 5
-- **Entry**: `main.tsx` wraps `App.tsx` with `ThemeContext` provider
-- **Terminal** (`components/Terminal.tsx`): Main interactive component with commands
-- **Games**: `components/poker/`, `components/bspoker/`, `PongGame.tsx`, `DinoGame.tsx`
-- **Hooks**: `usePokerSocket.ts`, `useBSPokerSocket.ts` - Socket.io WebSocket management
-- **Blog**: Markdown posts in `src/content/blog/posts/`
-
-### Backend (`server/src/`)
-- **Express + Socket.io** WebSocket server for multiplayer games
-- **server.ts**: Main server with Socket.io event handlers
-- **game/**: `PokerRoom.ts`, `RoomManager.ts`
+- **Entry**: `src/main.tsx` renders `src/App.tsx`, which holds the whole page
+- **Styles**: `src/styles/index.css` overrides Bootstrap's palette and font; light/dark follows the system setting via `data-bs-theme`
+- **Resume**: `public/rishab-banthiya-resume.pdf`
+- **Hosting**: GitHub Pages serves the root of `main`, so a change is live only after `./deploy.sh`, commit and push
 
 ## Code Style
 
