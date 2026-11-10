@@ -1,4 +1,5 @@
 import React from 'react'
+import { isMotionReduced } from '../utils/motion'
 
 // Flight path with one loop-the-loop, in viewBox units
 const FLIGHT_PATH =
@@ -9,7 +10,13 @@ const CYCLE_DURATION = '10s'
 const FLIGHT_KEY_TIMES = '0;0.4;1'
 const FLIGHT_KEY_SPLINES = '0.45 0 0.55 1;0 0 1 1'
 
-const isMotionReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+// The plane itself, nose pointing along +x so rotation can follow a path
+export const PlaneGlyph: React.FC = () => (
+  <>
+    <path d="M 9 0 L -7 -6 L -3 0 L -7 6 Z" fill="var(--bs-body-bg)" strokeWidth="1.2" />
+    <path d="M -3 0 L 9 0" strokeWidth="1.2" />
+  </>
+)
 
 const PaperPlane: React.FC = () => {
   return (
@@ -74,8 +81,7 @@ const PaperPlane: React.FC = () => {
               <mpath href="#flight-path" />
             </animateMotion>
           )}
-          <path d="M 9 0 L -7 -6 L -3 0 L -7 6 Z" fill="var(--bs-body-bg)" strokeWidth="1.2" />
-          <path d="M -3 0 L 9 0" strokeWidth="1.2" />
+          <PlaneGlyph />
         </g>
       </g>
     </svg>
