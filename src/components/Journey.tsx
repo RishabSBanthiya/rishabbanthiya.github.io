@@ -68,6 +68,7 @@ const Journey: React.FC = () => {
   const trailRef = useRef<SVGPathElement>(null)
   const planeRef = useRef<SVGGElement>(null)
   const stopRefs = useRef<(SVGGElement | null)[]>([])
+  const labelRefs = useRef<(HTMLDivElement | null)[]>([])
 
   useEffect(() => {
     const scene = sceneRef.current
@@ -102,8 +103,17 @@ const Journey: React.FC = () => {
 
       plane.setAttribute('transform', `translate(${point.x} ${point.y}) rotate(${angle}) scale(1.4)`)
       trail.setAttribute('stroke-dashoffset', String(1 - progress))
+      // The stop nearest the plane is the one in focus
+      let activeIndex = 0
+      stopFractions.forEach((fraction, index) => {
+        if (Math.abs(fraction - progress) < Math.abs(stopFractions[activeIndex] - progress)) activeIndex = index
+      })
       stopRefs.current.forEach((stop, index) => {
         stop?.classList.toggle('is-visited', progress >= stopFractions[index] - 0.005)
+        stop?.classList.toggle('is-active', index === activeIndex)
+      })
+      labelRefs.current.forEach((label, index) => {
+        label?.classList.toggle('is-active', index === activeIndex)
       })
     }
 
@@ -206,13 +216,14 @@ const Journey: React.FC = () => {
           </g>
         </svg>
 
-        {JOURNEY_STOPS.map((stop) => {
+        {JOURNEY_STOPS.map((stop, index) => {
           const isLeft = stop.x === LEFT_X
           const columnOffset = `calc(${isLeft ? 100 - (stop.x / SCENE_WIDTH) * 100 : (stop.x / SCENE_WIDTH) * 100}% + var(--journey-label-gap))`
           return (
             <div
               key={stop.place}
               className={`journey-label ${isLeft ? 'text-end' : 'text-start'}`}
+              ref={(element) => { labelRefs.current[index] = element }}
               style={{ top: `${(stop.y / SCENE_HEIGHT) * 100}%`, [isLeft ? 'right' : 'left']: columnOffset }}
             >
               <div className="journey-place">{stop.place}</div>
